@@ -1,4 +1,10 @@
-# The Playtest
+# Extremely Online
+
+This repository contains a web extension designed to collect data about
+where you browse and what you do. It doesn't do anything with that data; it just collects it and waits for you to download the data.
+
+This repository is, however, a bit more than a web extension. It's also a framework for collecting data.
+
 ## collection and reporting
 
 ### Design goals
