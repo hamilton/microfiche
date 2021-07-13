@@ -1,0 +1,41 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+---
+version: 2.1
+
+jobs:
+  Linting:
+    docker:
+      - image: cimg/node:14.13.1
+    steps:
+      - checkout
+      - run:
+          name: Install the dependencies
+          command: npm install
+      - run:
+          name: Build
+          command: npm run build
+      - run:
+          name: Run linting
+          command: npm run lint
+
+  Firefox integration tests:
+    docker:
+      - image: cimg/node:14.13.1
+    steps:
+      - checkout
+      - run:
+          name: Install the dependencies
+          command: npm install && sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa && sudo apt update && sudo apt install firefox-trunk
+      - run:
+          name: Run Selenium tests
+          command: export PATH=.:$PATH && npm run test-integration
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - Linting
+      - Firefox integration tests
