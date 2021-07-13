@@ -10,19 +10,22 @@ import { terser } from "rollup-plugin-terser";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
+// @ts-ignore
 import webScienceRollupPlugin from "@mozilla/web-science/rollup-plugin";
 
-function imports(config) {
+import { ModuleConfiguration } from './config-interface'
+
+function imports(config : Array<ModuleConfiguration>) {
     return config.map(module => {
         return `import ${module.namespace} from "../${module.src + module.namespace + '.reporter.js'}";`
     }).join('\n');
 }
 
-function storage(config) {
+function storage(configs : Array<ModuleConfiguration>) {
     return `
 const RALLY_TV_DB = new Dexie("RallyTV");    
 RALLY_TV_DB.version(1).stores({
-    ${config.map(c => {
+    ${configs.map(c => {
     const keys = `"${c.replaceOnSamePrimaryKey ? c.primaryKey : "++id"},createdAt"`;
     return `${c.namespace}: ${keys}`
 }).join(',\n\t')}
@@ -30,8 +33,8 @@ RALLY_TV_DB.version(1).stores({
 `
 }
 
-function instantiation(config) {
-    return config.map(module => {
+function instantiation(configs : Array<ModuleConfiguration>) {
+    return configs.map(module => {
         const operation = module.replaceOnSamePrimaryKey && module.primaryKey ? "put" : "add";
         return `
 ${module.namespace}.addListener(
@@ -60,43 +63,42 @@ browser.browserAction.onClicked.addListener(openPage);
     `
 }
 
-export function backgroundScript(config) {
+export function backgroundScript(configs : Array<ModuleConfiguration>) {
     return `
 import Dexie from "dexie";
 import browser from "webextension-polyfill";
 import EventStreamInspector from "../lib/event-stream-inspector";
-${imports(config)};
-${storage(config)}
+${imports(configs)};
+${storage(configs)}
 const inspector = new EventStreamInspector(RALLY_TV_DB);
 inspector.initialize();
-${instantiation(config)}
+${instantiation(configs)}
 ${optionsPage()}
 `
 }
 
-export function generateIntermediateBackgroundScript(args) {
+export function generateIntermediateBackgroundScript(args : { output : string, configs : Array<ModuleConfiguration> }) {
     const allArguments = {
         ... { output: "dist/intermediate-background.js" },
         ...args
     };
-    const { config, output } = allArguments;
-    const bgScript = backgroundScript(config);
+    const { configs, output } = allArguments;
+    const bgScript = backgroundScript(configs);
     fs.writeFileSync(output, bgScript);
 }
 
-export function generateBackgroundScript(args = {}) {
+export function generateBackgroundScript(args : { configs : Array<ModuleConfiguration>, isDevMode : boolean }) {
     const allArguments = {...{
         input: "dist/intermediate-background.js",
         output: "dist/background.js",
         isDevMode: true
     }, ...args};
-    const { input, output, isDevMode, config } = allArguments;
+    const { input, output, isDevMode, configs } = allArguments;
     generateIntermediateBackgroundScript({ 
-        config,
-        output: input,
-        isDevMode
+        configs,
+        output: input
       });
-    console.log(`Generated intermediate backgrouond script at ${input}`)
+    console.log(`Generated intermediate background script at ${input}`)
     return {
         input,
         output: {
@@ -120,13 +122,13 @@ export function generateBackgroundScript(args = {}) {
     }
 }
 
-export function generateCollectorContentScripts(args) {
+export function generateCollectorContentScripts(args : { configs : Array<ModuleConfiguration>, isDevMode : boolean}) {
     const allArguments = {...{
         isDevMode: true
     }, ...args};
-    const { isDevMode, config } = allArguments;
+    const { isDevMode, configs } = allArguments;
 
-    const collectors = config
+    const collectors = configs
     .map(collector => {
       const inputs = glob.sync(`${collector.src}*.collector.js`);
       return inputs.map(input => {

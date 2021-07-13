@@ -1,11 +1,36 @@
 /* global pageManager */
 
+// Declare the untyped WebScience libraries attachedd to window.
+declare global {
+    interface Window { 
+        webScience: any;
+        pageManager: any;
+        pageManagerHasLoaded : Array<Function>
+    }
+}
+
+// @ts-ignore
 import { produce } from "immer/dist/immer.cjs.production.min";
 
 const EVENTS = ['interval', 'page-visit-start', 'page-visit-stop', 'attention-start', 'attention-stop', 'audio-start', 'audio-stop'];
 
+interface CollectorArguments {
+    initialState?: object
+}
+
+interface eventHandler {
+    [key: string]: Array<Function>;
+}
+
 export default class Collector {
-    constructor(args = {}) {
+    _state : object;
+    collectors : object;
+    reporters : object;
+    collectionIntervals : Array<Function>;
+    eventHandlers : eventHandler;
+    eventIntervals : Array<{ callback : Function, timing : number, id?: number}>;
+
+    constructor(args : CollectorArguments) {
         const initialState = args.initialState;
         // If no initial state is passed in, opt for a plain object.
         this._state = {...(initialState || {})};
@@ -20,12 +45,12 @@ export default class Collector {
         return produce(this._state, () => {});
     }
 
-    updateState(callback) {
+    updateState(callback : Function) {
         this._state = produce(this._state, callback);
         return this._state;
     }
 
-    send(namespace, payload) {
+    send(namespace : string, payload : Object) {
         const pageManager = window.webScience.pageManager;
         pageManager.sendMessage({
             type: namespace,
@@ -33,7 +58,7 @@ export default class Collector {
         });
     }
 
-    on(event, callback, timing) {
+    on(event : string, callback : Function, timing : number) {
         if (!EVENTS.includes(event)) throw Error(`collect received an unrecognized event type "${event}"`);
         if (!(callback instanceof Function)) throw Error(`the collect callback must be a function. Instead received ${typeof callback}`);
         if (event === 'interval') {
@@ -45,9 +70,9 @@ export default class Collector {
         }
     }
 
-    _executeEventCallbacks(event, params) {
+    _executeEventCallbacks(event : string, params : any) {
         const pageManager = window.webScience.pageManager;
-        this.eventHandlers[event].forEach((callback) => {
+        this.eventHandlers[event].forEach((callback : Function) => {
             try {
                 callback(this, params, pageManager);
             } catch (err) {
@@ -60,7 +85,7 @@ export default class Collector {
         const pageManager = window.webScience.pageManager;
         if (this.eventIntervals.length) {
             this.eventIntervals.forEach((interval) => {
-                interval.id = setInterval(() => {
+                interval.id = window.setInterval(() => {
                     try {
                         interval.callback(this, { timeStamp: +new Date() }, pageManager);
                     } catch (err) {
@@ -72,7 +97,7 @@ export default class Collector {
         }
     }
 
-    _addCallbacksToListener(event) {
+    _addCallbacksToListener(event : string) {
         const pageManager = window.webScience.pageManager;
 
         if ((event !== 'interval') && !(event in this.eventHandlers)) { return; }
@@ -81,7 +106,8 @@ export default class Collector {
             return;
         }
 
-        let pageManagerEvent;
+        // FIXME: what is this type?
+        let pageManagerEvent : { addListener : Function };
         if (event === 'page-visit-start') { pageManagerEvent = pageManager.onPageVisitStart; }
         else if (event === 'page-visit-stop') { pageManagerEvent = pageManager.onPageVisitStop; }
         else if (event === 'attention-start') { pageManagerEvent = pageManager.onPageAttentionUpdate; }
@@ -96,7 +122,8 @@ export default class Collector {
             return;
         }
 
-        pageManagerEvent.addListener((params) => {
+        // FIXME: does pageManager output types? Probably not.
+        pageManagerEvent.addListener((params : any) => {
             const thisCallbackShouldBeRun = 
             (event === 'attention-start' && pageManager.pageHasAttention) || // actual attention start
             (event === 'attention-stop' && !pageManager.pageHasAttention) || // actual attention end

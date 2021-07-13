@@ -5,7 +5,7 @@ import {
   generateBackgroundScript, 
   generateCollectorContentScripts } from "./lib/generate-rollup-config";
 
-import config from "./src/app.config.js";
+import configs from "./src/app.config.js";
 
 function isDevMode(cliArgs) {
   return Boolean(cliArgs["config-enable-developer-mode"]);
@@ -13,8 +13,8 @@ function isDevMode(cliArgs) {
 
 export default (cliArgs) => {
   /** Generate the intermediate background script into dist, and then read that into rollup. */
-  const backgroundScript = generateBackgroundScript({ config, isDevMode: isDevMode(cliArgs) });
-  const contentScripts = generateCollectorContentScripts({ config, isDevMode: isDevMode(cliArgs) });
+  const backgroundScript = generateBackgroundScript({ configs, isDevMode: isDevMode(cliArgs) });
+  const contentScripts = generateCollectorContentScripts({ configs, isDevMode: isDevMode(cliArgs) });
   /** Return the rollup configurations for these two main components. */
   return [
     backgroundScript,

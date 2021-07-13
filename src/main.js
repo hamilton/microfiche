@@ -1,7 +1,6 @@
 // import { Rally, runStates } from "@mozilla/rally";
 import browser from "webextension-polyfill";
 // import attention from "./attention/attention.reporter";
-import config from "./app.config.js";
 import run from "../lib/rallytv"
 
 // function collectEventDataAndSubmit(devMode) {

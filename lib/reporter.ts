@@ -1,6 +1,23 @@
+// @ts-ignore
+import browser from "webextension-polyfill";
+// @ts-ignore
 import { pageManager, events, messaging } from "@mozilla/web-science";
+
+interface Schema {
+    [key : string] : any
+}
 export default class Reporter {
-    constructor({ collectorName, matchPatterns = ['<all_urls>'] }) {
+    matchPatterns : Array<string>;
+    collectorName : string;
+    notifyAboutPrivateWindows : boolean;
+    onPageData : { notifyListeners : Function, addListener : Function };
+    registeredContentScript : any;
+    schemas : Array<{ schema : Schema, schemaNamespace : string}>;
+
+    constructor(
+        { collectorName, matchPatterns = ['<all_urls>'] } : 
+        { collectorName : string, matchPatterns : Array<string> }
+    ) {
         this.matchPatterns = matchPatterns;
         this.collectorName = collectorName;
         this.schemas = [];
@@ -13,17 +30,19 @@ export default class Reporter {
         //this.storage = new Storage({ namespace: collectorName });
     }
 
-    _addListener(listener, options) {
-        this._startMeasurement(options);
+    // FIXME: get rid of this and put into this.onPageData directly after done with typescript.
+    _addListener() {
+        this._startMeasurement();
     }
 
-    _removeListener(listener) {
+    _removeListener(listener : Function) {
         // if (!this.hasAnyListeners()) {
             this._stopMeasurement();
         // }
     }
 
-    _pageDataListener(pageData) {
+    // FIXME – don't use any type.
+    _pageDataListener(pageData : any) {
         // If the page is in a private window and the module should not measure private windows,
         // ignore the page
         if(!(this.notifyAboutPrivateWindows) && pageData.privateWindow) {
@@ -35,11 +54,11 @@ export default class Reporter {
         this.onPageData.notifyListeners([ pageData ]);
     }
 
-    addSchema(schemaNamespace, schema) {
+    addSchema(schemaNamespace : string, schema : Schema) {
         this.schemas.push({ schema, schemaNamespace });
     }
 
-    async _startMeasurement(matchPatterns = ['<all_urls>']) {
+    async _startMeasurement() {
         await pageManager.initialize();
 
         this.registeredContentScript = await browser.contentScripts.register({
@@ -68,7 +87,7 @@ export default class Reporter {
         this.notifyAboutPrivateWindows = false;
     }
 
-    addListener(callback, options) {
+    addListener(callback : Function, options : any) {
         this.onPageData.addListener(callback, options);
     }
 }
