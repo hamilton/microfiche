@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
  import commonjs from "@rollup/plugin-commonjs";
+ import typescript from "@rollup/plugin-typescript";
  import resolve from "@rollup/plugin-node-resolve";
  // options page plugins
  import svelte from "rollup-plugin-svelte";
@@ -66,7 +67,7 @@ console.log('GENERATE OPTIONS PAGE');
          dedupe: ["svelte"],
        }),
        commonjs(),
-   
+       typescript(),
        // In dev mode, call `npm run start` once
        // the bundle has been generated
        !production && serve(),

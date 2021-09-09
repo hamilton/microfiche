@@ -10,10 +10,12 @@ import { terser } from "rollup-plugin-terser";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
+import typescript from "@rollup/plugin-typescript";
+
 // @ts-ignore
 import webScienceRollupPlugin from "@mozilla/web-science/rollup-plugin";
 
-import { ModuleConfiguration } from './config-interface'
+import type { ModuleConfiguration } from './config-interface'
 
 function imports(config : Array<ModuleConfiguration>) {
     return config.map(module => {
@@ -117,6 +119,7 @@ export function generateBackgroundScript(args : { configs : Array<ModuleConfigur
             browser: true,
           }),
           commonjs(),
+          typescript(),
           !isDevMode && terser()
         ],
     }

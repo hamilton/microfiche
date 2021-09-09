@@ -3,9 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 import { 
   generateBackgroundScript, 
-  generateCollectorContentScripts } from "./lib/generate-rollup-config";
+  generateCollectorContentScripts } from "./lib/generate-rollup-config.ts";
 
-import configs from "./src/app.config.js";
+import configs from "./app.config";
 
 function isDevMode(cliArgs) {
   return Boolean(cliArgs["config-enable-developer-mode"]);
