@@ -15,7 +15,7 @@
     onMount(() => {
         mounted = true;
         spinner.set(0);
-    });R
+    });
 
     const dispatch = createEventDispatcher();
 

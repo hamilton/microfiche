@@ -79,30 +79,32 @@ ${optionsPage()}
 `
 }
 
-export function generateIntermediateBackgroundScript(args : { output : string, configs : Array<ModuleConfiguration> }) {
-    const allArguments = {
-        ... { output: "dist/intermediate-background.js" },
-        ...args
-    };
-    const { configs, output } = allArguments;
-    const bgScript = backgroundScript(configs);
-    fs.writeFileSync(output, bgScript);
+export function initializeReporters(configs : Array<ModuleConfiguration>) {
+  return `
+// import all available Reporters
+${configs.map(module => {
+    return `import ${module.namespace} from "../${module.src + module.namespace + '.reporter.ts'}";`
+}).join("\n")}
+${configs.map(module => {
+  return `${module.namespace}();`
+}).join("\n")}
+ `
 }
 
 export function generateBackgroundScript(args : { configs : Array<ModuleConfiguration>, isDevMode : boolean }) {
     const allArguments = {...{
-        input: "dist/intermediate-background.js",
+        input: "./lib/background-template.ts",
         output: "dist/background.js",
         isDevMode: true
     }, ...args};
     const { input, output, isDevMode, configs } = allArguments;
-    generateIntermediateBackgroundScript({ 
-        configs,
-        output: input
-      });
+    // generateIntermediateBackgroundScript({ 
+    //     configs,
+    //     output: input
+    //   });
     console.log(`Generated intermediate background script at ${input}`)
     return {
-        input,
+        input: "./lib/background-template.ts",
         output: {
           file: output,
           sourcemap: isDevMode ? "inline" : false,
@@ -113,6 +115,7 @@ export function generateBackgroundScript(args : { configs : Array<ModuleConfigur
             // gracefully handles communication errors with the Core
             // Add-on.
             __ENABLE_DEVELOPER_MODE__: isDevMode,
+            __INITIALIZE_REPORTERS__: initializeReporters(configs)
           }),
           webScienceRollupPlugin(),
           resolve({
@@ -120,7 +123,7 @@ export function generateBackgroundScript(args : { configs : Array<ModuleConfigur
           }),
           commonjs(),
           typescript(),
-          !isDevMode && terser()
+          //!isDevMode && terser()
         ],
     }
 }

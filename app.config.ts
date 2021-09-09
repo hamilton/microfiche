@@ -8,7 +8,7 @@ information collected by each module.
 import type { ModuleConfiguration } from "./lib/config-interface";
 
 // We utilize typescript to validate our configuration.
-const config : Array<ModuleConfiguration> = [
+export const modules : Array<ModuleConfiguration> = [
     {
         namespace: "events",
         title: "Attention & Audio Events",
@@ -24,5 +24,3 @@ const config : Array<ModuleConfiguration> = [
         primaryKey: "pageId"
     }
 ];
-
-export default config;
