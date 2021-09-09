@@ -25,8 +25,8 @@ function imports(config : Array<ModuleConfiguration>) {
 
 function storage(configs : Array<ModuleConfiguration>) {
     return `
-const RALLY_TV_DB = new Dexie("RallyTV");    
-RALLY_TV_DB.version(1).stores({
+const DB = new Dexie("untitled-webextension-framework");    
+DB.version(1).stores({
     ${configs.map(c => {
     const keys = `"${c.replaceOnSamePrimaryKey ? c.primaryKey : "++id"},createdAt"`;
     return `${c.namespace}: ${keys}`
@@ -45,7 +45,7 @@ ${module.namespace}.addListener(
                 console.debug("${module.namespace}", data);
         }
         data.createdAt = +new Date();
-        await RALLY_TV_DB["${module.namespace}"].${operation}(data);
+        await DB["${module.namespace}"].${operation}(data);
     }, {
         matchPatterns: ${JSON.stringify(module.matchPatterns) ||'["<all_urls>"]'},
         privateWindows: false
@@ -72,7 +72,7 @@ import browser from "webextension-polyfill";
 import EventStreamInspector from "../lib/event-stream-inspector";
 ${imports(configs)};
 ${storage(configs)}
-const inspector = new EventStreamInspector(RALLY_TV_DB);
+const inspector = new EventStreamInspector(DB);
 inspector.initialize();
 ${instantiation(configs)}
 ${optionsPage()}
