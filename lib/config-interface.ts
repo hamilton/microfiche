@@ -12,7 +12,7 @@ export interface ModuleConfiguration {
     /** the description that appears on the options page */
     description: string,
     src: string,
-    replaceOnSamePrimaryKey : boolean,
-    primaryKey : string,
-    matchPatterns : Array<string>
+    replaceOnSamePrimaryKey? : boolean,
+    primaryKey? : string,
+    matchPatterns? : Array<string>
 }
