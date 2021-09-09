@@ -7,6 +7,7 @@
  import resolve from "@rollup/plugin-node-resolve";
  // options page plugins
  import svelte from "rollup-plugin-svelte";
+ import sveltePreprocess from 'svelte-preprocess';
  import livereload from 'rollup-plugin-livereload';
  import { terser } from 'rollup-plugin-terser';
  import css from 'rollup-plugin-css-only';
@@ -39,7 +40,7 @@ console.log('GENERATE OPTIONS PAGE');
  }
   
  export default (cliArgs) => [ {
-     input: "lib/options-page/main.js",
+     input: "lib/options-page/main.ts",
      output: {
        sourcemap: true,
        format: "iife",
@@ -48,6 +49,7 @@ console.log('GENERATE OPTIONS PAGE');
      },
      plugins: [
        svelte({
+         preprocess: sveltePreprocess(),
          compilerOptions: {
            // enable run-time checks when not in production
            dev: !production
