@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 import { 
   generateBackgroundScript, 
-  generateCollectorContentScripts } from "./lib/generate-rollup-config";
+  generateCollectorContentScripts } from "./out-tsc/lib/generate-rollup-config";
 
 import configs from "./out-tsc/app.config";
 

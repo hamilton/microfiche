@@ -9,14 +9,13 @@
     import CheapDialog from "../components/CheapDialog.svelte";
     // export let namespaces;
     export let namespaces;
-    export let startingTime;
 
     let spinner = tweened(1, {duration: 700, easing});
     let mounted = false;
     onMount(() => {
         mounted = true;
         spinner.set(0);
-    });
+    });R
 
     const dispatch = createEventDispatcher();
 
@@ -42,7 +41,7 @@
             </div>
         </header> -->
         <header>
-            <h1><span style="display: inline-block; transform: rotate({$spinner * 270 * 1}deg);">📺</span> RallyTV</h1>
+            <h1><span style="display: inline-block; transform: rotate({$spinner * 270 * 1}deg);">📺</span> Untitled Webextension Framework</h1>
         </header>
         <main>
             <div class='content-container'>
@@ -90,13 +89,13 @@
         <footer>
             <ul>
                 <li>
-                    <a href='https://rally.mozilla.org'>Rally</a>
+                    <a href='https://github.com/hamilton/untitled-webextension-framework'>Github</a>
                 </li>
                 <li>
-                    <a href='https://rally.mozilla.org'>About</a>
+                    <a href='#'>About</a>
                 </li>
                 <li>
-                    <a href='https://rally.mozilla.org'>Reach Out</a>
+                    <a href='#'>Reach Out</a>
                 </li>
             </ul>
         </footer>

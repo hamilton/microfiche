@@ -15,15 +15,15 @@ import typescript from "@rollup/plugin-typescript";
 // @ts-ignore
 import webScienceRollupPlugin from "@mozilla/web-science/rollup-plugin";
 
-//import type { ModuleConfiguration } from './config-interface'
+import type { ModuleConfiguration } from './config-interface'
 
-function imports(config) {
+function imports(config : Array<ModuleConfiguration>) {
     return config.map(module => {
         return `import ${module.namespace} from "../${module.src + module.namespace + '.reporter.js'}";`
     }).join('\n');
 }
 
-function storage(configs) {
+function storage(configs : Array<ModuleConfiguration>) {
     return `
 const RALLY_TV_DB = new Dexie("RallyTV");    
 RALLY_TV_DB.version(1).stores({
@@ -35,7 +35,7 @@ RALLY_TV_DB.version(1).stores({
 `
 }
 
-function instantiation(configs) {
+function instantiation(configs : Array<ModuleConfiguration>) {
     return configs.map(module => {
         const operation = module.replaceOnSamePrimaryKey && module.primaryKey ? "put" : "add";
         return `
@@ -65,7 +65,7 @@ browser.browserAction.onClicked.addListener(openPage);
     `
 }
 
-export function backgroundScript(configs) {
+export function backgroundScript(configs : Array<ModuleConfiguration>) {
     return `
 import Dexie from "dexie";
 import browser from "webextension-polyfill";
@@ -79,7 +79,7 @@ ${optionsPage()}
 `
 }
 
-export function generateIntermediateBackgroundScript(args) {
+export function generateIntermediateBackgroundScript(args : { output : string, configs : Array<ModuleConfiguration> }) {
     const allArguments = {
         ... { output: "dist/intermediate-background.js" },
         ...args
@@ -89,7 +89,7 @@ export function generateIntermediateBackgroundScript(args) {
     fs.writeFileSync(output, bgScript);
 }
 
-export function generateBackgroundScript(args) {
+export function generateBackgroundScript(args : { configs : Array<ModuleConfiguration>, isDevMode : boolean }) {
     const allArguments = {...{
         input: "dist/intermediate-background.js",
         output: "dist/background.js",
@@ -125,7 +125,7 @@ export function generateBackgroundScript(args) {
     }
 }
 
-export function generateCollectorContentScripts(args) {
+export function generateCollectorContentScripts(args : { configs : Array<ModuleConfiguration>, isDevMode : boolean }) {
     const allArguments = {...{
         isDevMode: true
     }, ...args};
