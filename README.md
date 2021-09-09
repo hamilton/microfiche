@@ -1,4 +1,4 @@
-# Extremely Online
+# Untitled Web Extension Framework
 
 This repository contains a web extension designed to collect data about
 where you browse and what you do. It doesn't do anything with that data; it just collects it and waits for you to download the data.
