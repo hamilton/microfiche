@@ -14,7 +14,6 @@
  *     matchPatterns: ["<all_urls>"],
  *     privateWindows: false
  * });
- * @property {EventStreamStorage} storage - The {@link EventStreamStorage} instance.
  * @module EventStreamInspector
  */
 import browser from "webextension-polyfill";
