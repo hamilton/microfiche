@@ -16,7 +16,7 @@ export default class Reporter {
 
     constructor(
         { collectorName, matchPatterns = ['<all_urls>'] } : 
-        { collectorName : string, matchPatterns? : Array<string> }
+        { collectorName : string, matchPatterns : Array<string> }
     ) {
         this.matchPatterns = matchPatterns;
         this.collectorName = collectorName;

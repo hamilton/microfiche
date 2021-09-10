@@ -3,19 +3,14 @@ This collector captures _only_ the individual page visit events.
 */
 
 import Collector from '../../lib/collector';
-import type { PageManager, PageInfo } from "../../lib/collector";
 const eventsCollector = new Collector();
 
-function submitEvent(
-        collector : Collector, 
-        eventType : string, 
-        timestamp : number, 
-        pageId : string) {
+function submitEvent(collector, eventType, timestamp, pageId) {
     collector.send("event", { eventType, timestamp, pageId });
 }
 
-function handleEvent(eventType : string) {
-    return (collector : Collector, pageInfo : PageInfo, pageManager : PageManager) => {
+function handleEvent(eventType) {
+    return (collector, pageInfo, pageManager) => {
         submitEvent(collector, eventType, pageInfo.timeStamp, pageManager.pageId);
     }
 }

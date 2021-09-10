@@ -1,16 +1,18 @@
-# Untitled Web Extension Framework
+# Extremely Online
 
 This repository contains a web extension designed to collect data about
 where you browse and what you do. It doesn't do anything with that data; it just collects it and waits for you to download the data.
 
 This repository is, however, a bit more than a web extension. It's also a framework for collecting data.
 
+## collection and reporting
+
 ### Design goals
 - data collection functions should be mostly functional, only closing over `document` and `window` to the extent that these are needed. This mostly-functional approach makes your data collection much cleaner, easier to test, and easier to reuse.
 - the collectors should not be too big. Right now, the biggest contribution to them is immer's `produce` function, which adds 15kb per collection effort. This is both not very big but probably avoidable if we were to handle immer differently than we are right now.
 - indexeddb might be a good solution, so let's try that.
 
-## Installation instructions:
+## to use this repository to collect your own data and play with it:
 
 1. fork or clone this repository
 2. run `npm install`
@@ -21,5 +23,5 @@ This repository is, however, a bit more than a web extension. It's also a framew
       2. then run `npm run build` in this directory.
       3. Then you can load the add-on from `about:addons`.
 4. browse for a few days to generate data.
-5. Go the the extension page and download the data.
+5. Go the the extension page and click the `download JSON` on the top right.
 

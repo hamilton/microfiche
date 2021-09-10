@@ -8,7 +8,6 @@ module.exports = {
     es6: true,
     node: true,
     webextensions: true,
-    "jest/globals": true
   },
   extends: [
     "eslint:recommended",
@@ -19,14 +18,10 @@ module.exports = {
     {
       files: "tests/**",
       env: {
-        jest: true
-      },
-      globals: {
-        "PageManager": "writable",
-        "browser": "writable",
+        mocha: true,
       },
       extends: [
-        "plugin:jest/recommended",
+        "plugin:mocha/recommended",
       ],
     },
   ],
@@ -42,8 +37,7 @@ module.exports = {
   plugins: [
     "import",
     "node",
-    "mocha",
-    "jest"
+    "mocha"
   ],
   root: true,
   rules: {
