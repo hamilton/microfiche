@@ -1,6 +1,6 @@
 /* global pageManager */
 
-// Declare the untyped WebScience libraries attachedd to window.
+// Declare the untyped WebScience libraries attached to window.
 declare global {
     interface Window { 
         webScience: any;

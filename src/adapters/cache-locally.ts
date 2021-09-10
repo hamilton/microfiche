@@ -6,7 +6,7 @@ let DB : Dexie;
 
 let dbVersion = 0;
 
-function initialize() {
+function initializeBackend() {
     if (!databaseInstantiated) {
         DB = new Dexie("untitled-webextension-framework");    
         databaseInstantiated = true;
@@ -18,24 +18,26 @@ function initialize() {
 
 let existingNamespaces : Array<string> = [];
 
-const DEFAULTS = {
-    devMode: false,
-    replaceOnSamePrimaryKey: undefined
-}
-
 interface LocalCacheArguments {
     devMode?: boolean,
     replaceOnSamePrimaryKey?: string | undefined
 }
 
+const DEFAULTS = {
+    devMode: false,
+    replaceOnSamePrimaryKey: undefined
+}
+
 export function createLocalCacheTable(namespace : string, additionalArguments : LocalCacheArguments = {}) {
     const { replaceOnSamePrimaryKey, devMode } = Object.assign({}, DEFAULTS, additionalArguments);
+
+    // Throw if this namespace has already been declared. Otherwise, add to list of existinNamespaces.
     if (existingNamespaces.includes(namespace)) {
         throw Error(`namepsace ${namespace} already exists`);
     }
     existingNamespaces.push(namespace);
 
-    const database : Dexie = initialize();
+    const database : Dexie = initializeBackend();
     dbVersion += 1;
     let indices = "++id,createdAt";
     if (replaceOnSamePrimaryKey) {
@@ -46,6 +48,7 @@ export function createLocalCacheTable(namespace : string, additionalArguments : 
     });
 
     return async function addToCache(datapoint : object) {
+        console.log('adding to cache', namespace, datapoint);
         if (devMode) {
             console.debug(namespace, datapoint);
         };
@@ -60,29 +63,3 @@ export function createLocalCacheTable(namespace : string, additionalArguments : 
         }
     }
 }
-
-// {
-//     events: "++id,createdAt",
-//     pages: "pageId,createdAt"
-// }
-
-/* 
-
-How do we want this to work?
-
-import cacheLocally from "./cache-locally";
-
-reporter.addEndpoint(cacheLocally);
-
-reporter.onData("some-event-name", (datapoint) => {
-    cacheLocally(point);
-})
-reporter.emit("some-event-name", cacheLocally);
-
-cacheLocally(
-    namespace,
-    reporter
-)
-
-
-*/

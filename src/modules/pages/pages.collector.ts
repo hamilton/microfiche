@@ -1,14 +1,8 @@
-/* 
-page.collector.js
-
-This collector captures page-level details.
-
-*/
-
 import { Readability } from "@mozilla/readability";
 import Collector from '../../lib/collector';
 import type { PageManager } from "../../lib/collector";
 import { getContentByElementName, getContentByTagProperty } from './probes';
+
 const pageCollector = new Collector();
 
 interface State {
@@ -17,7 +11,7 @@ interface State {
 }
 
 function onEventEnd() {
-    return (collector : Collector, pageManager : PageManager) => {
+    return (collector : Collector, _ : unknown, pageManager : PageManager) => {
         
         const documentClone = document.cloneNode(true); 
         // @ts-ignore
@@ -40,6 +34,7 @@ function onEventEnd() {
         const ogType = getContentByTagProperty("og:type", document) || "";
         const ogImage = getContentByTagProperty("og:image", document) || "";
         const ogURL = getContentByTagProperty("og:url", document) || "";
+
         collector.send("page", {
             pageId: pageManager.pageId,
             url: pageManager.url,
@@ -58,6 +53,8 @@ function onEventEnd() {
 
 pageCollector.on('attention-stop', onEventEnd());
 pageCollector.on('page-visit-stop', onEventEnd());
+
+console.log(window.webScience.pageManager);
 
 function collectScrollInformation(state : State) {
 

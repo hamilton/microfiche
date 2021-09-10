@@ -1,8 +1,9 @@
 import Reporter from "../../lib/reporter";
-import { createLocalCacheTable } from "../cache-locally";
+import { createLocalCacheTable } from "../../adapters/cache-locally";
 
 export default function initialize() {
     const page = new Reporter({ collectorName: "pages" });
+    const cacheLocally = createLocalCacheTable("pages", { replaceOnSamePrimaryKey: "pageId" });
 
     const sharedEventProperties = {
         pageId: "string",
@@ -19,8 +20,6 @@ export default function initialize() {
     }
 
     page.addSchema("page", {...sharedEventProperties});
-    const cacheLocally = createLocalCacheTable("pages", { replaceOnSamePrimaryKey: "pageId" });
-    
     
     page.addListener(cacheLocally, {
         matchPatterns: ["<all_urls>"],

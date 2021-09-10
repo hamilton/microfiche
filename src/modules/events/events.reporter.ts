@@ -1,5 +1,5 @@
 import Reporter from "../../lib/reporter";
-import { createLocalCacheTable } from "../cache-locally";
+import { createLocalCacheTable } from "../../adapters/cache-locally";
 
 export default function initialize() {
     const event = new Reporter({ collectorName: "events" });

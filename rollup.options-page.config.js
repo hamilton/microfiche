@@ -40,7 +40,7 @@ console.log('GENERATE OPTIONS PAGE');
  }
   
  export default (cliArgs) => [ {
-     input: "lib/options-page/main.ts",
+     input: "src/lib/options-page/main.ts",
      output: {
        sourcemap: true,
        format: "iife",
@@ -80,7 +80,7 @@ console.log('GENERATE OPTIONS PAGE');
    
        // If we're building for production (npm run build
        // instead of npm run dev), minify
-       //production && terser(),
+       production && terser(),
      ],
      watch: {
        clearScreen: false,
