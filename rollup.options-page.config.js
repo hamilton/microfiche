@@ -3,11 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
  import commonjs from "@rollup/plugin-commonjs";
- import typescript from "@rollup/plugin-typescript";
  import resolve from "@rollup/plugin-node-resolve";
  // options page plugins
  import svelte from "rollup-plugin-svelte";
- import sveltePreprocess from 'svelte-preprocess';
  import livereload from 'rollup-plugin-livereload';
  import { terser } from 'rollup-plugin-terser';
  import css from 'rollup-plugin-css-only';
@@ -40,7 +38,7 @@ console.log('GENERATE OPTIONS PAGE');
  }
   
  export default (cliArgs) => [ {
-     input: "src/lib/options-page/main.ts",
+     input: "lib/options-page/main.js",
      output: {
        sourcemap: true,
        format: "iife",
@@ -49,7 +47,6 @@ console.log('GENERATE OPTIONS PAGE');
      },
      plugins: [
        svelte({
-         preprocess: sveltePreprocess(),
          compilerOptions: {
            // enable run-time checks when not in production
            dev: !production
@@ -69,7 +66,7 @@ console.log('GENERATE OPTIONS PAGE');
          dedupe: ["svelte"],
        }),
        commonjs(),
-       typescript(),
+   
        // In dev mode, call `npm run start` once
        // the bundle has been generated
        !production && serve(),
