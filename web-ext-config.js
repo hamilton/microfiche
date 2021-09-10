@@ -18,6 +18,8 @@ module.exports = {
     "docs",
     "scripts",
     "src",
+    "dist",
+    "out-tsc",
     "stories",
     "support",
     "tests",
