@@ -15,27 +15,12 @@ jobs:
           name: Install the dependencies
           command: npm install
       - run:
-          name: Build
-          command: npm run build
-      - run:
           name: Run linting
-          command: npm run lint
+          command: npm run lint:eslint
 
-  Firefox integration tests:
-    docker:
-      - image: cimg/node:14.13.1
-    steps:
-      - checkout
-      - run:
-          name: Install the dependencies
-          command: npm install && sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa && sudo apt update && sudo apt install firefox-trunk
-      - run:
-          name: Run Selenium tests
-          command: export PATH=.:$PATH && npm run test-integration
 
 workflows:
   version: 2
   ci:
     jobs:
       - Linting
-      - Firefox integration tests
