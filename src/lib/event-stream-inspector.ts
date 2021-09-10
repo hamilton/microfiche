@@ -14,10 +14,15 @@
  *     matchPatterns: ["<all_urls>"],
  *     privateWindows: false
  * });
- * @property {EventStreamStorage} storage - The {@link EventStreamStorage} instance.
  * @module EventStreamInspector
  */
 import browser from "webextension-polyfill";
+import Dexie from "dexie";
+
+interface Message {
+    type: string,
+    data: any
+}
 
 /**
  * @class EventStreamInspector
@@ -29,9 +34,12 @@ import browser from "webextension-polyfill";
  * @property {EventStreamStorage} storage - The {@link EventStreamStorage} instance.
  */
 export default class EventStreamInspector {
-    constructor(storage) {
+    // FIXME: access Dexie's types.
+    storage : Dexie;
+    // @ts-ignore
+    _connectionPort : browser.Runtime.Port;
+    constructor(storage : Dexie) {
         this.storage = storage;
-        this._connectionPort = {};
         /** @property {EventStreamStorage} storage - The {@link EventStreamStorage} instance. */
         this.initialize();
     }
@@ -44,7 +52,7 @@ export default class EventStreamInspector {
 	 */
     initialize() {
         browser.runtime.onConnect.addListener(
-            p => {
+            (p) => {
                 this._onPortConnected(p);
             }
         );
@@ -54,20 +62,20 @@ export default class EventStreamInspector {
      * Creates the required listeners after the inspector has connected to the extension page.
      * @private
      */
-    _onPortConnected(port) {
+    _onPortConnected(port : browser.Runtime.Port) {
         const sender = port.sender;
+        // FIXME
+        // @ts-ignore
         if ((sender.id != browser.runtime.id)) {
             console.error("Rally Study - received message from unexpected sender");
             port.disconnect();
             return;
         }
-
         this._connectionPort = port;
         this._connectionPort.onMessage.addListener(
-            m => this._handleMessage(m, sender));
+            (m : Message) => this._handleMessage(m));
         this._connectionPort.onDisconnect.addListener(e => {
             console.log("Rally Study - disconnect or error", e);
-            this._connectionPort = null;
         });
     }
 
@@ -75,21 +83,24 @@ export default class EventStreamInspector {
      * Routes messages from the extension page to the corresponding private method.
      * @private
      */
-    async _handleMessage(message) {
+    async _handleMessage(message : Message) {
         switch (message.type) {
             case "size": {
+                // @ts-ignore
                 const size = await this.storage[message.data.namespace].count();
                 this._connectionPort.postMessage(
                     { type: `size-${message.data.namespace}`, data: size });
                 break;
             }
             case "get": {
+                // @ts-ignore
                 const data = await this.storage[message.data.namespace].toArray();
                 this._connectionPort.postMessage(
                     { type: `get-${message.data.namespace}`, data });
                 break;
             }
             case "reset": {
+                // @ts-ignore
                 await this.storage[message.data.namespace].clear();
                 this._connectionPort.postMessage(
                     { type: `reset-${message.data.namespace}` });
