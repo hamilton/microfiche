@@ -15,16 +15,13 @@ import webScienceRollupPlugin from "@mozilla/web-science/rollup-plugin";
 import type { ModuleConfiguration } from '../lib/config-interface';
 
 export function generateBackgroundScript(args : { configs : Array<ModuleConfiguration>, isDevMode : boolean }) {
-    const allArguments = {...{
-        input: "./src/build/background-template.ts",
-        output: "dist/background.js",
-        isDevMode: true
-    }, ...args};
-    const { input, output, isDevMode, configs } = allArguments;
+    const allArguments = {...{ isDevMode: true }, ...args};
+    const { isDevMode, configs } = allArguments;
+
     return {
         input: "./src/build/background-template.ts",
         output: {
-          file: output,
+          file: "dist/background.js",
           sourcemap: isDevMode ? "inline" : false,
         },
         plugins: [
@@ -60,7 +57,7 @@ export function generateCollectorContentScripts(args : { configs : Array<ModuleC
     const collectors = configs
     .map(collector => {
       const inputs = glob.sync(`${collector.src}*.collector.ts`);
-      console.log(inputs, collector.src);
+      
       return inputs.map(input => {
         // convert to js destination name.
         const destination = input.split('/').slice(-1)[0].slice(0, -3) + ".js";
