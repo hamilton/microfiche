@@ -3,9 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 import { 
   generateBackgroundScript, 
-  generateCollectorContentScripts } from "./lib/generate-rollup-config";
+  generateCollectorContentScripts } from "./out-tsc/src/build/generate-rollup-config";
 
-import configs from "./src/app.config.js";
+import { modules } from "./out-tsc/app.config";
 
 function isDevMode(cliArgs) {
   return Boolean(cliArgs["config-enable-developer-mode"]);
@@ -13,8 +13,8 @@ function isDevMode(cliArgs) {
 
 export default (cliArgs) => {
   /** Generate the intermediate background script into dist, and then read that into rollup. */
-  const backgroundScript = generateBackgroundScript({ configs, isDevMode: isDevMode(cliArgs) });
-  const contentScripts = generateCollectorContentScripts({ configs, isDevMode: isDevMode(cliArgs) });
+  const backgroundScript = generateBackgroundScript({ configs: modules, isDevMode: isDevMode(cliArgs) });
+  const contentScripts = generateCollectorContentScripts({ configs: modules, isDevMode: isDevMode(cliArgs) });
   /** Return the rollup configurations for these two main components. */
   return [
     backgroundScript,

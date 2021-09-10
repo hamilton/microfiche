@@ -1,26 +1,27 @@
-/* 
-page.collector.js
-
-This collector captures page-level details.
-
-*/
-
 import { Readability } from "@mozilla/readability";
 import Collector from '../../lib/collector';
+import type { PageManager } from "../../lib/collector";
 import { getContentByElementName, getContentByTagProperty } from './probes';
+
 const pageCollector = new Collector();
 
+interface State {
+    maxPixelScrollDepth: number,
+    maxScrollHeight: number
+}
+
 function onEventEnd() {
-    return (collector, pageInfo, pageManager) => {
+    return (collector : Collector, _ : unknown, pageManager : PageManager) => {
         
         const documentClone = document.cloneNode(true); 
-        let contentLastSeen = (new Readability(documentClone)).parse();
-        if (contentLastSeen) {
-            contentLastSeen = contentLastSeen.textContent;
+        // @ts-ignore
+        let parsedOutput = (new Readability(documentClone)).parse();
+        let contentLastSeen : string;
+        if (parsedOutput) {
+            contentLastSeen = parsedOutput.textContent;
         } else {
             contentLastSeen = '';
         }
-
 
         const state = collector.get();
         const maxScrollHeight = state.maxScrollHeight || 0;
@@ -33,6 +34,7 @@ function onEventEnd() {
         const ogType = getContentByTagProperty("og:type", document) || "";
         const ogImage = getContentByTagProperty("og:image", document) || "";
         const ogURL = getContentByTagProperty("og:url", document) || "";
+
         collector.send("page", {
             pageId: pageManager.pageId,
             url: pageManager.url,
@@ -52,7 +54,9 @@ function onEventEnd() {
 pageCollector.on('attention-stop', onEventEnd());
 pageCollector.on('page-visit-stop', onEventEnd());
 
-function collectScrollInformation(state) {
+console.log(window.webScience.pageManager);
+
+function collectScrollInformation(state : State) {
 
     const h = document.documentElement;
     const b = document.body;
@@ -72,6 +76,6 @@ function collectScrollInformation(state) {
     state.maxScrollHeight = maxScrollHeight;
 }
 
-pageCollector.on('interval', (collector) => { collector.updateState(collectScrollInformation); }, 1000);
+pageCollector.on('interval', (collector : Collector) => { collector.updateState(collectScrollInformation); }, 1000);
 
 pageCollector.run();

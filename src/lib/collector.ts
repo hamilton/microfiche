@@ -1,6 +1,6 @@
 /* global pageManager */
 
-// Declare the untyped WebScience libraries attachedd to window.
+// Declare the untyped WebScience libraries attached to window.
 declare global {
     interface Window { 
         webScience: any;
@@ -22,6 +22,29 @@ interface eventHandler {
     [key: string]: Array<Function>;
 }
 
+export interface PageManager {
+    pageId: string,
+    url: string,
+    sendMessage: Function,
+    onPageVisitStart: { addListener : Function },
+    onPageVisitStop: { addListener : Function },
+    onPageAttentionUpdate: { addListener : Function },
+    onPageAudioUpdate: { addListener : Function },
+    pageVisitStarted: boolean,
+    pageHasAudio: boolean,
+    pageHasAttention: boolean,
+    pageVisitStartTime: number
+}
+
+/**
+ * PageInfo is used within a PageManager callback.
+ * We provide the interface here for convenience until
+ * we've established a typescript foundation for a Web Science fork.
+ */
+export interface PageInfo {
+    timeStamp: number
+}
+
 export default class Collector {
     _state : object;
     collectors : object;
@@ -30,8 +53,8 @@ export default class Collector {
     eventHandlers : eventHandler;
     eventIntervals : Array<{ callback : Function, timing : number, id?: number}>;
 
-    constructor(args : CollectorArguments) {
-        const initialState = args.initialState;
+    constructor(args? : CollectorArguments) {
+        const initialState = args?.initialState;
         // If no initial state is passed in, opt for a plain object.
         this._state = {...(initialState || {})};
         this.collectors = {};
@@ -51,27 +74,32 @@ export default class Collector {
     }
 
     send(namespace : string, payload : Object) {
-        const pageManager = window.webScience.pageManager;
+        const pageManager : PageManager = window.webScience.pageManager;
         pageManager.sendMessage({
             type: namespace,
             ...payload
         });
     }
 
-    on(event : string, callback : Function, timing : number) {
+    on(event : string, callback : Function, timing? : number) {
         if (!EVENTS.includes(event)) throw Error(`collect received an unrecognized event type "${event}"`);
         if (!(callback instanceof Function)) throw Error(`the collect callback must be a function. Instead received ${typeof callback}`);
         if (event === 'interval') {
-            this.eventIntervals.push({
-                callback, timing
-            })
+            if (typeof timing === "number") {
+                this.eventIntervals.push({
+                    callback, timing
+                })
+            } else {
+                throw new Error('interval timing must be a number');
+            }
+            
         } else {
             this.eventHandlers[event] = [...(this.eventHandlers[event] || []), callback];
         }
     }
 
     _executeEventCallbacks(event : string, params : any) {
-        const pageManager = window.webScience.pageManager;
+        const pageManager : PageManager = window.webScience.pageManager;
         this.eventHandlers[event].forEach((callback : Function) => {
             try {
                 callback(this, params, pageManager);
@@ -82,7 +110,7 @@ export default class Collector {
     }
 
     _runIntervals() {
-        const pageManager = window.webScience.pageManager;
+        const pageManager : PageManager = window.webScience.pageManager;
         if (this.eventIntervals.length) {
             this.eventIntervals.forEach((interval) => {
                 interval.id = window.setInterval(() => {
@@ -98,7 +126,7 @@ export default class Collector {
     }
 
     _addCallbacksToListener(event : string) {
-        const pageManager = window.webScience.pageManager;
+        const pageManager : PageManager = window.webScience.pageManager;
 
         if ((event !== 'interval') && !(event in this.eventHandlers)) { return; }
         if (event === 'interval') {

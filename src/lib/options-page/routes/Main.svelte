@@ -9,7 +9,6 @@
     import CheapDialog from "../components/CheapDialog.svelte";
     // export let namespaces;
     export let namespaces;
-    export let startingTime;
 
     let spinner = tweened(1, {duration: 700, easing});
     let mounted = false;
@@ -25,24 +24,10 @@
 
 </script>
 
-<!-- <style>
-.cta {
-    display: flex;
-    gap: .5em;
-}
-</style> -->
 {#if mounted}
     <div class="admin" in:fade={{ duration: 800 }}>
-        <!-- <header>
-            <h1>Event Stream Inspector</h1>
-            <div class='cta'>
-                <button disabled={data.length === 0} on:click={() => { dispatch('reset-data'); }} class='btn btn-secondary'>Reset Data</button>
-                <button on:click={() => downloadJSON(data, `browsing-${new Date().toISOString().replace(/:/g, '-').replace('.', '-')}.json`)} disabled={data.length === 0} class="btn btn-primary download-csv"><Table size="1.25em" />
-                    Download JSON</button>
-            </div>
-        </header> -->
         <header>
-            <h1><span style="display: inline-block; transform: rotate({$spinner * 270 * 1}deg);">📺</span> RallyTV</h1>
+            <h1><span style="display: inline-block; transform: rotate({$spinner * 270 * 1}deg);">📺</span> Untitled Webextension Framework</h1>
         </header>
         <main>
             <div class='content-container'>
@@ -90,13 +75,13 @@
         <footer>
             <ul>
                 <li>
-                    <a href='https://rally.mozilla.org'>Rally</a>
+                    <a href='https://github.com/hamilton/untitled-webextension-framework'>Github</a>
                 </li>
                 <li>
-                    <a href='https://rally.mozilla.org'>About</a>
+                    <a href='https://github.com/hamilton/untitled-webextension-framework'>About</a>
                 </li>
                 <li>
-                    <a href='https://rally.mozilla.org'>Reach Out</a>
+                    <a href='https://github.com/hamilton/untitled-webextension-framework'>Reach Out</a>
                 </li>
             </ul>
         </footer>
