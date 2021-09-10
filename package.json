@@ -18,7 +18,8 @@
     "dev": "npm run build && npm-run-all --parallel dev:source dev:bundled",
     "dev:options-page": "rollup -w rollup.options-page.config.js",
     "dev:source": "rollup -c --config-enable-developer-mode --configPlugin typescript -w",
-    "dev:bundled": "web-ext run --watch-file dist/background.js --watch-file dist/content-scripts/attention-collector.js --watch-file schemas/measurements.1.schema.json"
+    "dev:bundled": "web-ext run --watch-file dist/background.js --watch-file dist/content-scripts/attention-collector.js --watch-file schemas/measurements.1.schema.json",
+    "prepare": "husky install"
   },
   "jest": {
     "verbose": true,
@@ -62,6 +63,7 @@
     "eslint-plugin-mocha": "^8.0.0",
     "eslint-plugin-node": "^11.1.0",
     "geckodriver": "^1.21.0",
+    "husky": "^7.0.2",
     "jest": "^26.6.3",
     "jest-transform-stub": "^2.0.0",
     "jest-webextension-mock": "^3.7.6",
