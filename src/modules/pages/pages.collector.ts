@@ -79,3 +79,5 @@ function collectScrollInformation(state : State) {
 pageCollector.on('interval', (collector : Collector) => { collector.updateState(collectScrollInformation); }, 1000);
 
 pageCollector.run();
+
+export default pageCollector;

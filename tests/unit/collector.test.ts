@@ -64,7 +64,6 @@ function mockPageManager() {
             addListener: (callback: Function) => { pageAttentionUpdateCallbacks.push(callback) },
             send: (params = { timeStamp: 1000, pageHasAttention: true }) => {
                 PM.pageHasAttention = params.pageHasAttention;
-                console.log('is this called?', params.pageHasAttention)
                 pageAttentionUpdateCallbacks.forEach(fcn => { fcn(params); } );
             }
         },
