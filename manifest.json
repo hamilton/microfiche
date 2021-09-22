@@ -1,9 +1,9 @@
 {
   "description": "",
-  "author": "Mozilla Rally",
+  "author": "Hamilton Ulmer",
   "manifest_version": 2,
-  "name": "Quantified Self Playtest",
-  "version": "0.1.2",
+  "name": "UWEF",
+  "version": "0.0.0",
   "homepage_url": "https://github.com/mozilla-rally/quantified-self-playtest",
 
   "icons": {},
