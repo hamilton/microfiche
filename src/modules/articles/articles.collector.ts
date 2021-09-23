@@ -18,10 +18,8 @@
             // @ts-ignore
             let parsedOutput = (new Readability(documentClone)).parse();
             if (parsedOutput) {
-                console.log('this rules. Get ready.', parsedOutput.textContent);
                 collector.send("article", {
                     pageId: pageManager.pageId,
-                    url: pageManager.url,
                     content: parsedOutput.textContent
                 });
             }
@@ -32,5 +30,6 @@
  }
 
 articleCollector.on("attention-stop", onEventEnd());
+articleCollector.on('page-visit-stop', onEventEnd());
 
 articleCollector.run();

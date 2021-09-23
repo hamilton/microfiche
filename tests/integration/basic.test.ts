@@ -5,7 +5,7 @@
 import fs from "fs";
 import type { Server } from "http";
 
-import {  getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY, spinUpServers } from "./utils";
+import {  getChromeDriver, getFirefoxDriver, WAIT_FOR_PROPERTY, spinUpServers } from "./utils";
 import { until } from "selenium-webdriver";
 import type { WebDriver } from 'selenium-webdriver';
 import minimist from "minimist";
@@ -106,10 +106,24 @@ describe("Basic data collection flow", function () {
     expect(matches[2]).toContain('eventType:"page-visit-stop"');
     expect(matches[2]).toContain('"adding to cache" "events"');
     
-    expect(matches[3].includes('"adding to cache" "pages"')).toBeTruthy();
-    expect(matches[3].includes('maxScrollHeight') && matches[3].includes('maxPixelScrollDepth')).toBeTruthy();
+    // index 3 or 4 could be either the articles or pages payload.
+    expect(
+      matches[4].includes('"adding to cache" "articles"') ||
+      matches[3].includes('"adding to cache" "articles"')
+    ).toBeTruthy();
 
-    expect(matches[4].includes('eventType:"page-visit-start"')).toBeTruthy();
-    expect(matches[4].includes('"adding to cache" "events"')).toBeTruthy();
+    expect(
+      matches[4].includes('"adding to cache" "pages"') ||
+      matches[3].includes('"adding to cache" "pages"')
+    ).toBeTruthy();
+
+    expect(
+      (matches[3].includes('maxScrollHeight') && matches[3].includes('maxPixelScrollDepth')) ||
+      matches[4].includes('maxScrollHeight') && matches[4].includes('maxPixelScrollDepth')
+    ).toBeTruthy();
+
+  
+    expect(matches[5].includes('eventType:"page-visit-start"')).toBeTruthy();
+    expect(matches[5].includes('"adding to cache" "events"')).toBeTruthy();
   });
 });

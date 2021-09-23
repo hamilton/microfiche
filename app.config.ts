@@ -29,11 +29,20 @@ export const modules : Array<ModuleConfiguration> = [
     {
         namespace: "events",
         title: "Attention & Audio Events",
-        description: "How and here you browse, measured.",
+        description: "Where you browse, measured.",
         src: "src/modules/events/"
     },
 
     /**
      * Add your modules below.
      */
+
+     {
+        namespace: "articles",
+        title: "Articles",
+        description: "The contents of every article and post you open.",
+        src: "src/modules/articles/",
+        replaceOnSamePrimaryKey: true,
+        primaryKey: "pageId"
+    },
 ];
