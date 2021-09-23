@@ -15,7 +15,7 @@
     "storybook": "start-storybook -p 6006",
     "test:unit": "jest",
     "test:integration": "./scripts/integration-test.sh",
-    "test:integration:jest": "jest ./tests/integration/",
+    "test:integration:jest": "jest ./tests/integration/ --detectOpenHandles",
     "dev": "npm run build && npm-run-all --parallel dev:source dev:bundled",
     "dev:options-page": "rollup -w rollup.options-page.config.js",
     "dev:source": "rollup -c --config-enable-developer-mode --configPlugin typescript -w",

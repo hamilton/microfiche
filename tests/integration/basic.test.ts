@@ -3,15 +3,14 @@
 * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import fs from "fs";
-import { createReadStream } from "fs";
-import readline from "readline";
+import type { Server } from "http";
 
-import { findAndAct, getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY } from "./utils";
-import { By, until } from "selenium-webdriver";
+import {  getChromeDriver, getFirefoxDriver, extensionLogsPresent, WAIT_FOR_PROPERTY, spinUpServers } from "./utils";
+import { until } from "selenium-webdriver";
+import type { WebDriver } from 'selenium-webdriver';
 import minimist from "minimist";
 
 const args = (minimist(process.argv.slice(2)));
-console.debug(args);
 for (const arg of ["test_browser", "load_extension", "headless_mode"]) {
   if (!(arg in args)) {
     throw new Error(`Missing required option: --${arg}`);
@@ -41,30 +40,41 @@ console.info(`Running with test_browser: ${testBrowser}, load_extension: ${loadE
 jest.setTimeout(60 * 10000);
 
 // @ts-ignore
-let driver;
+let driver:WebDriver;
+function flagString (goalpost:string, message:string) {
+  return `[${goalpost}] ${message}`
+}
+let startFlag:Function;
+let endFlag:Function;
 let screenshotCount = 0;
 
+let servers:Server[];
+
+function getBrowserConsoleEntries(key: string) {
+  const logFile = fs.readFileSync("./integration.log").toString();
+  const r = new RegExp(`(?<=console.log: "\\[START\\] ${key}")([\\s\\S]*?)(?=console.log: "\\[END\\] ${key}")`, 'g');
+  // @ts-ignore
+  return logFile.match(r)[0].split('\n').filter(s => s.length && s !== '"');
+}
+
 describe("Basic data collection flow", function () {
+  beforeAll(() => {
+    servers = spinUpServers();
+  });
+  afterAll((done) => {
+    servers.forEach( s => { s.close(); } );
+    done();
+  })
+
   beforeEach(async () => {
     driver = await webDriver(loadExtension, headlessMode);
-    console.log(driver);
-    // If installed, the extension will open this page.
-    // if (loadExtension) {
-    //   // Starting with a single tab.
-    //   await driver.wait(async () => {
-    //     return (await driver.getAllWindowHandles()).length === 2;
-    //   }, WAIT_FOR_PROPERTY);
+    startFlag = async (message:string) => {
+      return await driver.executeScript(`console.log("${flagString("START", message)}")`);
+    }
+    endFlag = async (message:string) => {
+      return await driver.executeScript(`console.log("${flagString("END", message)}")`);
+    }
 
-    //   // Close the original tab, which is blank.
-    //   await driver.switchTo().window((await driver.getAllWindowHandles())[0]);
-    //   await driver.close();
-    //   // Site is now open in first tab position.
-    //   await driver.switchTo().window((await driver.getAllWindowHandles())[0]);
-    // } else {
-    //   await driver.get("http://localhost:5000");
-    // }
-
-    // Starting with a single tab.
     await driver.wait(async () => {
       return (await driver.getAllWindowHandles()).length === 1;
     }, WAIT_FOR_PROPERTY);
@@ -72,214 +82,34 @@ describe("Basic data collection flow", function () {
   });
 
   afterEach(async () => {
-    screenshotCount++;
-
-    const image = await driver.takeScreenshot();
-    let extension = loadExtension ? "extension" : "no_extension";
-    let headless = headlessMode ? "headless" : "no_headless";
-
-    const screenshotDir = `screenshots/${testBrowser}-${extension}-${headless}`;
-    const screenshotFilename = `${screenshotDir}/out-${screenshotCount}.png`;
-    try {
-      await fs.promises.access(`./${screenshotDir}`)
-    } catch (ex) {
-      await fs.promises.mkdir(`./${screenshotDir}`);
-    }
-    await fs.promises.writeFile(screenshotFilename, image, "base64");
-    console.log(`recorded screenshot: ${screenshotFilename}`)
-
     await driver.quit();
   });
 
-  it("loads a single page", async function () {
-
-    // start with page 1.
+  it("simulates a page viskt, then another page visit in th same tab", async function () {
+    const TEST = "simulate-page-visit-then-another";
+    await driver.executeScript(`console.log("[START] ${TEST}")`);
     await driver.get("http://localhost:8091");
+    await driver.wait(until.titleIs('site01'), 1000);
+    await driver.sleep(1000);
+    await driver.get("http://localhost:8092");
+    await driver.executeScript(`console.log("[END] ${TEST}")`);
 
-    // what should come next 
+    // get the log.
+    const matches = getBrowserConsoleEntries(TEST);
 
-    // await driver.wait(
-    //   until.titleIs("Sign Up | Mozilla Rally"),
-    //   WAIT_FOR_PROPERTY
-    // );
-    // await findAndAct(driver, By.css("button"), e => e.click());
+    expect(matches[0]).toContain('eventType:"page-visit-start"');
+    expect(matches[0]).toContain('"adding to cache" "events"');
 
-    // // Google sign-in prompt should open
-    // await driver.wait(async () => {
-    //   return (await driver.getAllWindowHandles()).length === 2;
-    // }, WAIT_FOR_PROPERTY);
+    expect(matches[1]).toContain('eventType:"attention-start"');
+    expect(matches[1]).toContain('"adding to cache" "events"');
 
-    // await driver.switchTo().window((await driver.getAllWindowHandles())[1]);
+    expect(matches[2]).toContain('eventType:"page-visit-stop"');
+    expect(matches[2]).toContain('"adding to cache" "events"');
+    
+    expect(matches[3].includes('"adding to cache" "pages"')).toBeTruthy();
+    expect(matches[3].includes('maxScrollHeight') && matches[3].includes('maxPixelScrollDepth')).toBeTruthy();
 
-    // await driver.wait(
-    //   until.titleIs("Auth Emulator IDP Login Widget"),
-    //   WAIT_FOR_PROPERTY
-    // );
-
-    // // FIXME this emulator auth pop-up isn't ready on the default "loaded" event, the window will close anyway so retry until it responds.
-    // await driver.executeScript(`window.setInterval(() => document.querySelector(".mdc-button").click(), 1000)`);
-
-    // await findAndAct(driver, By.id('autogen-button'), e => e.click());
-    // await findAndAct(driver, By.id('sign-in'), e => e.click());
-
-    // // Google sign-in prompt should close.
-    // await driver.wait(async () => {
-    //   return (await driver.getAllWindowHandles()).length === 1;
-    // }, WAIT_FOR_PROPERTY);
-
-    // // Switch back to original window.
-    // await driver.switchTo().window((await driver.getAllWindowHandles())[0]);
-
-    // await driver.wait(
-    //   until.titleIs("Privacy Policy | Mozilla Rally"),
-    //   WAIT_FOR_PROPERTY
-    // );
-
-    // // TODO add Cancel button test, not implemented by site yet.
-    // await findAndAct(driver, By.xpath('//button[text()="Accept & Enroll"]'), e => e.click());
-    // await findAndAct(driver, By.xpath('//button[text()="Skip for Now"]'), e => e.click());
-
-    // await driver.wait(
-    //   until.titleIs("Studies | Mozilla Rally"),
-    //   WAIT_FOR_PROPERTY
-    // );
-
-    // // Start to join study, but cancel.
-    // await findAndAct(driver, By.xpath('//button[text()="Join Study"]'), e => e.click());
-    // await findAndAct(driver, By.xpath('//button[text()="Cancel"]'), e => e.click());
-
-    // // Start to join study, and confirm.
-    // await findAndAct(driver, By.xpath('//button[text()="Join Study"]'), e => e.click());
-    // await findAndAct(driver, By.xpath('//button[text()="Accept & Enroll"]'), e => e.click());
-
-    // if (loadExtension) {
-    //   // FIXME need to load Chrome-compatible study metadata into firestore.
-    //   if (testBrowser === "firefox") {
-    //     await driver.wait(async () =>
-    //       await extensionLogsPresent(driver, testBrowser, `Start data collection`),
-    //       WAIT_FOR_PROPERTY
-    //     );
-    //   }
-    // }
-
-    // // Start to leave study, but cancel.
-    // await findAndAct(driver, By.xpath('//button[text()="Leave Study"]'), e => e.click());
-    // await findAndAct(driver, By.xpath('//button[text()="Cancel"]'), e => e.click());
-
-    // // Start to leave study, and confirm.
-    // await findAndAct(driver, By.xpath('//button[text()="Leave Study"]'), e => e.click());
-    // await findAndAct(driver, By.xpath('(//button[text()="Leave Study"])[2]'), e => e.click());
-
-    // if (loadExtension) {
-    //   // FIXME need to load Chrome-compatible study metadata into firestore.
-    //   if (testBrowser === "firefox") {
-    //     await driver.wait(async () =>
-    //       await extensionLogsPresent(driver, testBrowser, `Pause data collection`),
-    //       WAIT_FOR_PROPERTY
-    //     );
-    //   }
-    // }
-
-    // FIXME the website hasn't implemented this yet
-    // await driver.wait(until.elementIsVisible(await driver.findElement(By.xpath('//button[text()="Accent & Enroll"]'))), WAIT_FOR_PROPERTY);
+    expect(matches[4].includes('eventType:"page-visit-start"')).toBeTruthy();
+    expect(matches[4].includes('"adding to cache" "events"')).toBeTruthy();
   });
-
-  // it("fails to sign up for a new email account with invalid info", async function () {
-  //   await driver.wait(
-  //     until.titleIs("Sign Up | Mozilla Rally"),
-  //     WAIT_FOR_PROPERTY
-  //   );
-
-  //   // Invalid email address fails.
-  //   await driver.findElement(By.id('id_user_email')).sendKeys("test123");
-  //   await driver.findElement(By.id('id_user_pw')).sendKeys("test1234");
-  //   await findAndAct(driver, By.xpath('//button[text()="Sign Up"]'), e => e.click());
-
-  //   await driver.findElement(By.id('id_user_email')).clear();
-  //   await driver.findElement(By.id('id_user_pw')).clear();
-
-  //   // Weak password fails.
-  //   await driver.findElement(By.id('id_user_email')).sendKeys("test123");
-  //   await driver.findElement(By.id('id_user_pw')).sendKeys("test1234");
-  //   await findAndAct(driver, By.xpath('//button[text()="Sign Up"]'), e => e.click());
-
-  //   await driver.findElement(By.id('id_user_email')).clear();
-  //   await driver.findElement(By.id('id_user_pw')).clear();
-
-  //   // Signing up into an ID already used registered with a different provider fails.
-  //   await driver.findElement(By.id('id_user_email')).sendKeys("test123");
-  //   await driver.findElement(By.id('id_user_pw')).sendKeys("test1234");
-  //   await findAndAct(driver, By.xpath('//button[text()="Sign Up"]'), e => e.click());
-  // });
-
-  // it("fails to sign into website with invalid email credentials", async function () {
-  //   await driver.wait(
-  //     until.titleIs("Sign Up | Mozilla Rally"),
-  //     WAIT_FOR_PROPERTY
-  //   );
-
-  //   // Totally invalid credentials fail
-  //   await driver.findElement(By.id('id_user_email')).sendKeys("test123");
-  //   await driver.findElement(By.id('id_user_pw')).sendKeys("test1234");
-  //   await findAndAct(driver, By.xpath('//button[text()="Log In"]'), e => e.click());
-
-  //   await driver.findElement(By.id('id_user_email')).clear();
-  //   await driver.findElement(By.id('id_user_pw')).clear();
-
-  //   // Logging into an ID already used registered with a different provider fails
-  //   await driver.findElement(By.id('id_user_email')).sendKeys("test123");
-  //   await driver.findElement(By.id('id_user_pw')).sendKeys("test1234");
-  //   await findAndAct(driver, By.xpath('//button[text()="Log In"]'), e => e.click());
-  // });
-
-  // it("signs up for website with valid email credentials", async function () {
-  //   // Valid credentials succeed.
-  //   await driver.findElement(By.id('id_user_email')).sendKeys("test@example.com");
-  //   await driver.findElement(By.id('id_user_pw')).sendKeys("validpass123");
-  //   await findAndAct(driver, By.xpath('//button[text()="Sign Up"]'), e => e.click());
-
-  //   await driver.findElement(By.id('id_user_email')).clear();
-  //   await driver.findElement(By.id('id_user_pw')).clear();
-
-  //   // Unverified account can be logged into, but cannot be used until verified.
-  //   await driver.findElement(By.id('id_user_email')).sendKeys("test@example.com");
-  //   await driver.findElement(By.id('id_user_pw')).sendKeys("validpass123");
-  //   await findAndAct(driver, By.xpath('//button[text()="Log In"]'), e => e.click());
-
-  //   const readInterface = readline.createInterface({
-  //     input: createReadStream('integration.log'),
-  //     output: process.stdout
-  //   });
-
-  //   let verifiedEmail = false;
-  //   readInterface.on('line', async function (line) {
-  //     if (!verifiedEmail && line.includes(`To verify the email address test@example.com, follow this link:`)) {
-  //       const result = line.split(" ");
-  //       const url = result[result.length - 1];
-  //       await driver.executeScript(`window.open("${url}");`);
-  //       verifiedEmail = true;
-  //     }
-  //   });
-
-  //   // Wait for Selenium to open confirmation link.
-  //   await driver.wait(async () => {
-  //     return (await driver.getAllWindowHandles()).length >= 2;
-  //   }, WAIT_FOR_PROPERTY);
-
-  //   // Switch back to original window.
-  //   await driver.switchTo().window((await driver.getAllWindowHandles())[0]);
-
-  //   // Sign in again, need to get a new token that has email_verified as a claim.
-  //   await driver.get("http://localhost:5000/signup");
-  //   await driver.findElement(By.id('id_user_email')).sendKeys("test@example.com");
-  //   await driver.findElement(By.id('id_user_pw')).sendKeys("validpass123");
-  //   await findAndAct(driver, By.xpath('//button[text()="Log In"]'), e => e.click());
-
-  //   await driver.wait(
-  //     until.titleIs("Privacy Policy | Mozilla Rally"),
-  //     WAIT_FOR_PROPERTY
-  //   );
-
-  //   // FIXME logout and log back in
-  // });
 });

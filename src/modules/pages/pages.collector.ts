@@ -54,8 +54,6 @@ function onEventEnd() {
 pageCollector.on('attention-stop', onEventEnd());
 pageCollector.on('page-visit-stop', onEventEnd());
 
-console.log(window.webScience.pageManager);
-
 function collectScrollInformation(state : State) {
 
     const h = document.documentElement;

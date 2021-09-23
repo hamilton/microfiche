@@ -8,7 +8,8 @@ interface TestCollectorState {
     value: number,
     anotherValue: number,
     text: string,
-    time: number
+    time: number,
+    extra: boolean
 }
 
 interface TestPageManager extends PageManagerType {
@@ -170,11 +171,11 @@ describe('Collector.js', function() {
         })
         it('handles PageManager events during a full single-page lifecycle', function() {
             const check = jest.fn();
-            const pageVisitStart1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageVisitStart1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.count = 1;}) };
-            const pageAttentionStart1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStart1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.count += 1;}) };
-            const pageAttentionStop1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStop1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.count += 1;}) };
-            const pageAttentionStop2 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStop2'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.count += 1; state.extra = true;}) };
-            const pageVisitStop1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageVisitStop1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.count += 1;}) };
+            const pageVisitStart1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageVisitStart1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value = 1;}) };
+            const pageAttentionStart1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStart1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value += 1;}) };
+            const pageAttentionStop1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStop1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value += 1;}) };
+            const pageAttentionStop2 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStop2'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value += 1; state.extra = true;}) };
+            const pageVisitStop1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageVisitStop1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value += 1;}) };
             collector.on('page-visit-start', pageVisitStart1);
             collector.on('attention-start', pageAttentionStart1);
             collector.on('attention-stop', pageAttentionStop1);
@@ -191,8 +192,8 @@ describe('Collector.js', function() {
             PageManager.onPageAttentionUpdate.send({ timeStamp: 6000010, pageHasAttention: false });
             PageManager.onPageVisitStop.send({ timeStamp: 6000030 });
 
-            expect(collector._state).toEqual({ time: 6000030, count: 5, extra: true});
-            expect(PageManager.sendMessage.mock.calls[0][0]).toEqual({ type: "test", time: 6000030, count: 5, extra: true });
+            expect(collector._state).toEqual({ time: 6000030, value: 5, extra: true});
+            expect(PageManager.sendMessage.mock.calls[0][0]).toEqual({ type: "test", time: 6000030, value: 5, extra: true });
 
             // let's check the ordering of the calls.
             expect(check.mock.calls[0][0]).toBe('pageVisitStart1');
