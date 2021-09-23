@@ -13,7 +13,7 @@
     "package": "npm run build && web-ext build --overwrite-dest --ignore-files \"./tests/**/*\" --ignore-files \"./src/**/*\" --ignore-files \"./rollup.config.js\"",
     "precompile": "npm run cleanup && tsc src/build/generate-rollup-config.ts app.config.ts --module esnext --target ESNEXT --moduleResolution node --esModuleInterop --outDir out-tsc",
     "storybook": "start-storybook -p 6006",
-    "test:unit": "jest",
+    "test:unit": "jest ./tests/unit",
     "test:integration": "./scripts/integration-test.sh",
     "test:integration:jest": "jest ./tests/integration/ --detectOpenHandles",
     "dev": "npm run build && npm-run-all --parallel dev:source dev:bundled",
