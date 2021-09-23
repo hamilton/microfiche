@@ -59,3 +59,4 @@ eventsCollector.on('audio-stop', handleEvent('audio-stop'));
 // }, 1000);
 
 eventsCollector.run();
+export default eventsCollector;

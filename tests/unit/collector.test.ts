@@ -1,65 +1,103 @@
-import Collector from "../../lib/collector";
+/**
+ * @jest-environment jsdom
+ */
+import Collector from "../../src/lib/collector";
+import type { PageManager as PageManagerType, PageInfo } from "../../src/lib/collector";
 
-const fcn1 = (collector) => { 
-    collector.updateState(state => {
+interface TestCollectorState {
+    value: number,
+    anotherValue: number,
+    text: string,
+    time: number,
+    extra: boolean
+}
+
+interface TestPageManager extends PageManagerType {
+    sendMessage: jest.Mock<Function>
+}
+
+declare global {
+    var PageManager: TestPageManager;
+}
+
+const fcn1 = (collector:Collector) => { 
+    collector.updateState((state:TestCollectorState) => {
         state.value = 10;
     })
 };
-const fcn2 = (collector) => { 
-    collector.updateState(state => {
+const fcn2 = (collector:Collector) => { 
+    collector.updateState((state:TestCollectorState) => {
         state.value = 20; state.text = 'test'; 
     });
 };
-const fcn3 = (collector, params) => { 
-    collector.updateState(state => {
+const fcn3 = (collector:Collector, params: PageInfo) => { 
+    collector.updateState((state:TestCollectorState) => {
         state.time = params.timeStamp;
     });
 };
 
 function mockPageManager() {
-    const PM = {};
-    PM.sendMessage = () => {};
-    const pageVisitStartCallbacks = [];
-    PM.onPageVisitStart = {
-        listeners: pageVisitStartCallbacks,
-        addListener: (callback) => { pageVisitStartCallbacks.push(callback) },
-        send: (params = { timeStamp: 1000 }) => { 
-            pageVisitStartCallbacks.forEach(fcn => { fcn(params); } );
+    const pageVisitStartCallbacks:Function[] = [];
+    const pageVisitStopCallbacks:Function[] = [];
+    const pageAttentionUpdateCallbacks:Function[] = [];
+    const pageAudioUpdateCallbacks:Function[] = [];
+    let pageVisitStarted = false;
+    let pageVisitStartTime = 0;
+    const PM : TestPageManager = { 
+        pageId: 'whatever', url: "https://example.com",
+        onPageVisitStart: {
+            listeners: pageVisitStartCallbacks,
+            addListener: (callback: Function) => { pageVisitStartCallbacks.push(callback) },
+            send(params = { timeStamp: 1000 }){ 
+                pageVisitStarted = true;
+                pageVisitStartCallbacks.forEach(fcn => { fcn(params); } );
+            }
+        },
+        onPageVisitStop: {
+            listeners: pageVisitStopCallbacks,
+            addListener: (callback: Function) => { pageVisitStopCallbacks.push(callback) },
+            send: (params = { timeStamp: 1000 }) => { 
+                pageVisitStopCallbacks.forEach(fcn => { fcn(params); } ) 
+            }
+        },
+        onPageAttentionUpdate: {
+            listeners: pageAttentionUpdateCallbacks,
+            addListener: (callback: Function) => { pageAttentionUpdateCallbacks.push(callback) },
+            send: (params = { timeStamp: 1000, pageHasAttention: true }) => {
+                PM.pageHasAttention = params.pageHasAttention;
+                pageAttentionUpdateCallbacks.forEach(fcn => { fcn(params); } );
+            }
+        },
+        onPageAudioUpdate: {
+            listeners: pageAudioUpdateCallbacks,
+            addListener: (callback: Function) => { pageAudioUpdateCallbacks.push(callback) },
+            send: (params = { timeStamp: 1000 }) => { 
+                pageAudioUpdateCallbacks.forEach(fcn => { fcn(params); } ) 
+            }
+        },
+        sendMessage: jest.fn(),
+        pageHasAttention: true,
+        pageHasAudio: true,
+        get pageVisitStarted() {
+            return pageVisitStarted;
+        },
+        get pageVisitStartTime() {
+            return pageVisitStartTime
         }
-    }
-    const pageVisitStopCallbacks = [];
-    PM.onPageVisitStop = {
-        listeners: pageVisitStopCallbacks,
-        addListener: (callback) => { pageVisitStopCallbacks.push(callback) },
-        send: (params = { timeStamp: 1000 }) => { 
-            pageVisitStopCallbacks.forEach(fcn => { fcn(params); } ) 
-        }
-    }
-    const pageAttentionUpdateCallbacks = [];
-    PM.onPageAttentionUpdate = {
-        listeners: pageAttentionUpdateCallbacks,
-        addListener: (callback) => { pageAttentionUpdateCallbacks.push(callback) },
-        send: (params = { timeStamp: 1000 }) => { 
-            pageAttentionUpdateCallbacks.forEach(fcn => { fcn(params); } ) 
-        }
-    }
-    const pageAudioUpdateCallbacks = [];
-    PM.onPageAudioUpdate = {
-        listeners: pageAudioUpdateCallbacks,
-        addListener: (callback) => { pageAudioUpdateCallbacks.push(callback) },
-        send: (params = { timeStamp: 1000 }) => { 
-            pageAudioUpdateCallbacks.forEach(fcn => { fcn(params); } ) 
-        }
-    }
-    PM.sendMessage = jest.fn();
+    };
+    PM.pageHasAttention = true;
     return PM;
 }
 
 describe('Collector.js', function() {
-   let collector;
+   let collector:Collector;
    beforeEach(function() {
        collector = new Collector();
-       global.PageManager = mockPageManager();
+       const pmMock = mockPageManager();
+       global.PageManager = pmMock;
+       global.window.webScience = {
+           pageManager: pmMock
+       }
    })
    describe('constructor', function() {
        it('keeps in local state the initialState and namespace', function() {
@@ -71,13 +109,7 @@ describe('Collector.js', function() {
    describe('.collect', function() {
        it('throws if the event is an unrecognized string', function() {
            expect(() => collector.on('whatever', () => {})).toThrow();
-       })
-       it('throws if arguments are not correct', function() {
-            expect(() => collector.on()).toThrow();
-            expect(() => collector.on('page-visit-start')).toThrow();
-            expect(() => collector.on(10, () => {})).toThrow();
-            expect(() => collector.on('page-visit-start', 10)).toThrow();
-       })
+       });
        it('adds callbacks to collectors', function() {
            collector.on('page-visit-start', fcn1);
            expect('page-visit-start' in collector.eventHandlers).toBe(true);
@@ -115,7 +147,7 @@ describe('Collector.js', function() {
             collector.on('page-visit-start', fcn1);
             collector.on('page-visit-start', fcn2);
             collector.on('page-visit-start', fcn3);
-            collector.on('page-visit-start', (collector) => {
+            collector.on('page-visit-start', (collector:Collector) => {
                 collector.send('test', collector.get());
             })
             // this function will send whatever the payload is to the "test" namespace as-is
@@ -128,7 +160,7 @@ describe('Collector.js', function() {
             collector.on('page-visit-start', fcn1);
             collector.on('page-visit-start', fcn2);
             collector.on('page-visit-start', fcn3);
-            collector.on('page-visit-start', (collector) => {
+            collector.on('page-visit-start', (collector:Collector) => {
                 collector.send('test', collector.get());
             });
 
@@ -139,30 +171,29 @@ describe('Collector.js', function() {
         })
         it('handles PageManager events during a full single-page lifecycle', function() {
             const check = jest.fn();
-            const pageVisitStart1 = (collector, { timeStamp }) => { check('pageVisitStart1'); collector.updateState(state => {state.time = timeStamp; state.count = 1;}) };
-            const pageAttentionStart1 = (collector, { timeStamp }) => { check('pageAttentionStart1'); collector.updateState(state => {state.time = timeStamp; state.count += 1;}) };
-            const pageAttentionStop1 = (collector, { timeStamp }) => { check('pageAttentionStop1'); collector.updateState(state => {state.time = timeStamp; state.count += 1;}) };
-            const pageAttentionStop2 = (collector, { timeStamp }) => { check('pageAttentionStop2'); collector.updateState(state => {state.time = timeStamp; state.count += 1; state.extra = true;}) };
-            const pageVisitStop1 = (collector, { timeStamp }) => { check('pageVisitStop1'); collector.updateState(state => {state.time = timeStamp; state.count += 1;}) };
+            const pageVisitStart1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageVisitStart1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value = 1;}) };
+            const pageAttentionStart1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStart1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value += 1;}) };
+            const pageAttentionStop1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStop1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value += 1;}) };
+            const pageAttentionStop2 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageAttentionStop2'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value += 1; state.extra = true;}) };
+            const pageVisitStop1 = (collector:Collector, { timeStamp }:PageInfo) => { check('pageVisitStop1'); collector.updateState((state:TestCollectorState) => { state.time = timeStamp; state.value += 1;}) };
             collector.on('page-visit-start', pageVisitStart1);
             collector.on('attention-start', pageAttentionStart1);
             collector.on('attention-stop', pageAttentionStop1);
             collector.on('attention-stop', pageAttentionStop2);
             collector.on('page-visit-stop', pageVisitStop1);
-            collector.on("page-visit-stop", (collector) => { collector.send('test', collector.get()) });
+            collector.on("page-visit-stop", (collector:Collector) => { collector.send('test', collector.get()) });
 
             collector._addAllCallbacks();
 
             // run through each PageManager event as if the tab is active.
             PageManager.onPageVisitStart.send({ timeStamp: 6000000 });
-            global.PageManager.pageHasAttention = true;
-            PageManager.onPageAttentionUpdate.send({ timeStamp: 6000010 });
-            global.PageManager.pageHasAttention = false;
-            PageManager.onPageAttentionUpdate.send({ timeStamp: 6000020 });
+            PageManager.onPageAttentionUpdate.send({ timeStamp: 6000020, pageHasAttention: true });
+            // global.PageManager.pageHasAttention = true;
+            PageManager.onPageAttentionUpdate.send({ timeStamp: 6000010, pageHasAttention: false });
             PageManager.onPageVisitStop.send({ timeStamp: 6000030 });
 
-            expect(collector._state).toEqual({ time: 6000030, count: 5, extra: true});
-            expect(PageManager.sendMessage.mock.calls[0][0]).toEqual({ type: "test", time: 6000030, count: 5, extra: true });
+            expect(collector._state).toEqual({ time: 6000030, value: 5, extra: true});
+            expect(PageManager.sendMessage.mock.calls[0][0]).toEqual({ type: "test", time: 6000030, value: 5, extra: true });
 
             // let's check the ordering of the calls.
             expect(check.mock.calls[0][0]).toBe('pageVisitStart1');
@@ -180,26 +211,26 @@ describe('Collector.js', function() {
         })
         it('handles a single interval collection', function() {
             jest.useFakeTimers();
-            collector.on('interval', (collector) => {
-                collector.updateState(state => { state.count = (state.count || 0) + 1; });
+            collector.on('interval', (collector:Collector) => {
+                collector.updateState((state:TestCollectorState) => { state.value = (state.value || 0) + 1; });
             }, 500);
             collector._addCallbacksToListener('interval');
             jest.advanceTimersByTime(1501);
             const state = collector.get();
-            expect(state).toEqual({ count: 3 });
+            expect(state).toEqual({ value: 3 });
         })
         it('handles multiple simultaneous interval collections', function() {
             jest.useFakeTimers();
-            collector.on('interval', (collector) => {
-                collector.updateState(state => { state.count1 = (state.count1 || 0) + 1; });
+            collector.on('interval', (collector:Collector) => {
+                collector.updateState((state:TestCollectorState) => { state.value = (state.value || 0) + 1; });
             }, 500);
-            collector.on('interval', (collector) => {
-                collector.updateState(state => { state.count2 = (state.count2 || 0) + 1; });
+            collector.on('interval', (collector:Collector) => {
+                collector.updateState((state:TestCollectorState) => { state.anotherValue = (state.anotherValue || 0) + 1; });
             }, 200);
             collector._addCallbacksToListener('interval');
             jest.advanceTimersByTime(1501);
             const state = collector.get();
-            expect(state).toEqual({ count1: 3, count2: 7 });
+            expect(state).toEqual({ value: 3, anotherValue: 7 });
         })
     })
     describe("running more than one collector", function() {
