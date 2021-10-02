@@ -26,7 +26,6 @@
             
          }
      }
-     
  }
 
 articleCollector.on("attention-stop", onEventEnd());

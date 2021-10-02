@@ -28,7 +28,7 @@ export function generateBackgroundScript(args : { configs : Array<ModuleConfigur
           replace({
             __ENABLE_DEVELOPER_MODE__: isDevMode,
             __INITIALIZE_REPORTERS__: `
-// import and instantiate the reporters associated with app.config.ts
+// import and instantiate the reporters associated with standard-modules.config.ts
 ${configs.map(module => {
     return `import ${module.namespace} from "../../${module.src + module.namespace + '.reporter.ts'}";`
 }).join("\n")}

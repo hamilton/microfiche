@@ -1,5 +1,5 @@
 import App from './routes/App.svelte';
-import { modules } from '../../../app.config';
+import { modules } from '../../../standard-modules.config';
 
 const app = new App({
 	target: document.body,

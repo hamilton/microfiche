@@ -11,6 +11,7 @@ import { Builder, Locator, logging, WebDriver } from "selenium-webdriver";
 import { until } from "selenium-webdriver";
 import firefox from "selenium-webdriver/firefox";
 import chrome from "selenium-webdriver/chrome";
+import minimist from "minimist";
 
 const TEST_EXTENSION = "../../web-ext-artifacts/uwef-0.0.0.zip";
 
@@ -19,26 +20,99 @@ const TEST_EXTENSION = "../../web-ext-artifacts/uwef-0.0.0.zip";
 // a long time to account for slow CI.
 export const WAIT_FOR_PROPERTY = 10000;
 
+
 function spinUpServerFor(file:string) {
   return http.createServer((req, res) => {
-    res.writeHead(200, { 'content-type': 'text/html' })
-    fs.createReadStream(file).pipe(res)
+    res.writeHead(200, { 'content-type': 'text/html' });
+    // throw away everything that isn't index.html for now
+    if (req.url?.includes('html')) {
+      fs.createReadStream(path.join(file, req.url || '')).pipe(res);
+    } else {
+      res.write("ok");
+    }
   })
 }
 
 let serversSpunUp = false;
-let s01:Server;
-let s02:Server;
+let pageServer:Server;
 
-export function spinUpServers() {
+let port = 8040;
+
+export function expectEvent(log:string, eventName:string) {
+  expect(log).toContain(eventName);
+}
+
+export function spinUpPageServer() {
   if (!serversSpunUp) {
-    s01 = spinUpServerFor('./tests/integration/sites/site01/index.html');
-    s02 = spinUpServerFor('./tests/integration/sites/site02/index.html');
-    s01.listen(8091);
-    s02.listen(8092);
+    pageServer = spinUpServerFor('./tests/integration/sites');
+
+    pageServer.listen(port);
     serversSpunUp = true;
   }
-  return [s01, s02];
+  return pageServer;
+}
+
+export function getDemarcations(driver:WebDriver, testName:string) {
+  return {
+    async startDemarcation() {
+      return await driver.executeScript(`console.log("${addTestDemarcation("START", testName)}")`);
+    },
+    async endDemarcation() {
+      return await driver.executeScript(`console.log("${addTestDemarcation("END", testName)}")`);
+    }
+  }
+}
+
+export async function loadSite(driver:WebDriver, siteKey:string) {
+  await driver.get(`http://localhost:${port}/${siteKey}.html`);
+  await driver.wait(until.titleIs(siteKey), 1000);
+  await driver.sleep(10);
+}
+
+export async function loadTestSites(driver:WebDriver, testName:string, ...siteKeys:string[]) {
+  const { startDemarcation, endDemarcation } = getDemarcations(driver, testName);
+  await startDemarcation();
+  for (const siteKey of siteKeys) {
+    await loadSite(driver, siteKey);
+  }
+  await endDemarcation();
+  return getBrowserConsoleEntries(testName);
+}
+
+export function getBrowserConsoleEntries(key: string) {
+  const logFile = fs.readFileSync("./integration.log").toString();
+  const r = new RegExp(`(?<=console.log: "\\[START\\] ${key}")([\\s\\S]*?)(?=console.log: "\\[END\\] ${key}")`, 'g');
+  // @ts-ignore
+  return logFile.match(r)[0].split('\n').filter(s => s.length && s !== '"');
+}
+
+export function addTestDemarcation (goalpost:string, message:string) {
+  return `[${goalpost}] ${message}`
+}
+
+export function processArguments(processArgv:string[]) {
+  const args = (minimist(processArgv.slice(2)));
+  for (const arg of ["test_browser", "headless_mode"]) {
+    if (!(arg in args)) {
+      throw new Error(`Missing required option: --${arg}`);
+    }
+  }
+  return args;
+}
+
+export function getDriver(testBrowser:string) {
+  let webDriver;
+  switch (testBrowser) {
+    case "chrome":
+      webDriver = getChromeDriver;
+      break;
+    case "firefox":
+      webDriver = getFirefoxDriver;
+      break;
+    default:
+      throw new Error(`Unknown test_browser: ${testBrowser}`);
+  }
+  return webDriver;
 }
 
 /**
@@ -81,11 +155,9 @@ export async function findAndAct(driver: WebDriver, locator: Locator, action: Fu
 *        Whether or not to run Firefox in headless mode.
 * @returns {Promise<WebDriver>} a WebDriver instance to control Firefox.
 */
-export async function getFirefoxDriver(loadExtension: boolean, headlessMode: boolean): Promise<WebDriver> {
+export async function getFirefoxDriver(headlessMode: boolean): Promise<WebDriver> {
   const firefoxOptions = new firefox.Options();
   firefoxOptions.setPreference("devtools.console.stdout.content", true);
-  firefoxOptions.setPreference("webdriver.log.file", "./integration.log")
-//  firefoxOptions.setPreference('extensions.webextensions.uuids', {})
 
   if (headlessMode) {
     firefoxOptions.headless();
@@ -102,12 +174,10 @@ export async function getFirefoxDriver(loadExtension: boolean, headlessMode: boo
     .setFirefoxService(new firefox.ServiceBuilder().setStdio("inherit"))
     .build();
 
-  if (loadExtension) {
-    // Extensions can only be loaded temporarily at runtime for Firefox Release.
-    const isTemporaryAddon = true;
-    // @ts-ignore this appears to be missing from the type definition, but it exists!
-    const ok = await driver.installAddon(`${__dirname}/${TEST_EXTENSION}`, isTemporaryAddon);
-  }
+  // Extensions can only be loaded temporarily at runtime for Firefox Release.
+  const isTemporaryAddon = true;
+  // @ts-ignore this appears to be missing from the type definition, but it exists!
+  const ok = await driver.installAddon(`${__dirname}/${TEST_EXTENSION}`, isTemporaryAddon);
 
   return driver;
 }
@@ -121,10 +191,10 @@ export async function getFirefoxDriver(loadExtension: boolean, headlessMode: boo
 *        Whether or not to run Firefox in headless mode.
 * @returns {Promise<WebDriver>} a WebDriver instance to control Chrome.
 */
-export async function getChromeDriver(loadExtension: boolean, headlessMode: boolean) {
+export async function getChromeDriver(headlessMode: boolean) {
   const chromeOptions = new chrome.Options();
 
-  if (headlessMode && loadExtension) {
+  if (headlessMode) {
     throw new Error("Chrome Headless does not support extensionss")
   }
 
@@ -136,14 +206,12 @@ export async function getChromeDriver(loadExtension: boolean, headlessMode: bool
     chromeOptions.addArguments("window-size=1920,1080");
   }
 
-  if (loadExtension) {
-    const encode = (file:string) => {
-      var stream = fs.readFileSync(file);
-      return Buffer.from(stream).toString("base64");
-    }
-
-    chromeOptions.addExtensions(encode(path.resolve(`${__dirname}/${TEST_EXTENSION}`)));
+  const encode = (file:string) => {
+    var stream = fs.readFileSync(file);
+    return Buffer.from(stream).toString("base64");
   }
+
+  chromeOptions.addExtensions(encode(path.resolve(`${__dirname}/${TEST_EXTENSION}`)));
 
   return await new Builder()
     .forBrowser("chrome")
