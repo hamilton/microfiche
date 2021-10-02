@@ -1,4 +1,3 @@
-import { Readability } from "@mozilla/readability";
 import Collector from '../../lib/collector';
 import type { PageManager } from "../../lib/collector";
 import { getContentByElementName, getContentByTagProperty } from './probes';
@@ -12,17 +11,6 @@ interface State {
 
 function onEventEnd() {
     return (collector : Collector, _ : unknown, pageManager : PageManager) => {
-        
-        const documentClone = document.cloneNode(true); 
-        // @ts-ignore
-        let parsedOutput = (new Readability(documentClone)).parse();
-        let contentLastSeen : string;
-        if (parsedOutput) {
-            contentLastSeen = parsedOutput.textContent;
-        } else {
-            contentLastSeen = '';
-        }
-
         const state = collector.get();
         const maxScrollHeight = state.maxScrollHeight || 0;
         const maxPixelScrollDepth = state.maxPixelScrollDepth || 0;
@@ -45,8 +33,7 @@ function onEventEnd() {
             ogImage,
             ogURL,
             maxScrollHeight, 
-            maxPixelScrollDepth,
-            contentLastSeen
+            maxPixelScrollDepth
         });
     }
 }

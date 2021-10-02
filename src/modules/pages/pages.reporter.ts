@@ -16,7 +16,6 @@ export default function initialize() {
         ogURL: "string",
         maxScrollHeight: "number", 
         maxPixelScrollDepth: "number",
-        contentLastSeen: 'string'
     }
 
     page.addSchema("page", {...sharedEventProperties});

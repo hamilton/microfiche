@@ -5,7 +5,7 @@ import {
   generateBackgroundScript, 
   generateCollectorContentScripts } from "./out-tsc/src/build/generate-rollup-config";
 
-import { modules } from "./out-tsc/app.config";
+import { modules } from "./out-tsc/standard-modules.config";
 
 function isDevMode(cliArgs) {
   return Boolean(cliArgs["config-enable-developer-mode"]);
