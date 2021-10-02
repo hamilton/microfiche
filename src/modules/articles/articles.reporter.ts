@@ -7,7 +7,10 @@ export default function initialize() {
 
     const sharedEventProperties = {
         pageId: "string",
-        content: "string"
+        content: "string",
+        textContent: "string",
+        byline: "string",
+        title: "string"
     };
 
     article.addSchema("article", {...sharedEventProperties});

@@ -29,7 +29,7 @@ export const modules : Array<ModuleConfiguration> = [
     {
         namespace: "events",
         title: "Attention & Audio Events",
-        description: "Where you browse, measured.",
+        description: "Where you browse over time.",
         src: "src/modules/events/"
     },
 
@@ -40,7 +40,7 @@ export const modules : Array<ModuleConfiguration> = [
      {
         namespace: "articles",
         title: "Articles",
-        description: "The contents of every article and post you open.",
+        description: "The content of the articles and posts you read.",
         src: "src/modules/articles/",
         replaceOnSamePrimaryKey: true,
         primaryKey: "pageId"

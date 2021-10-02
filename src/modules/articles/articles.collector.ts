@@ -20,10 +20,12 @@
             if (parsedOutput) {
                 collector.send("article", {
                     pageId: pageManager.pageId,
-                    content: parsedOutput.textContent
+                    textContent: parsedOutput.textContent,
+                    content: parsedOutput.content,
+                    byline: parsedOutput.byline || '',
+                    title: parsedOutput.title || ''
                 });
             }
-            
          }
      }
  }

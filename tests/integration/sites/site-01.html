@@ -1,7 +1,44 @@
 <head>
   <meta property="og:title" content="site-01" />
   <meta property="og:type" content="article" />
+  <meta property="article:author" content="The Team" />
   <meta property="og:description" content="The description for site-01" />
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "NewsArticle",
+      "description": "Live site example.",
+      "image": [
+        {
+          "@context": "http://schema.org",
+          "@type": "ImageObject",
+          "url": "#",
+          "height": 900,
+          "width": 1600
+        }
+      ],
+      "mainEntityOfPage": "http://localhost:8041/site-01.html",
+      "url": "http://localhost:8041/site-01.html",
+      "inLanguage": "en",
+      "author": [
+        {
+          "@context": "http://schema.org",
+          "@type": "Person",
+          "url": "http://localhost:8041",
+          "name": "The Team"
+        }
+      ],
+      "dateModified": "2021-10-02T00:32:22.809Z",
+      "datePublished": "2021-10-01T12:51:42.000Z",
+      "headline": "here is the site-01 test",
+      "alternativeHeadline": "This is an integration test",
+      "publisher": { "@id": "#" },
+      "copyrightHolder": { "@id": "#" },
+      "sourceOrganization": { "@id": "#" },
+      "copyrightYear": 2021,
+      "isAccessibleForFree": true
+    }
+  </script>
   <title>site-01</title>
   <style>
     body {
@@ -57,6 +94,9 @@
         that I’m aiming too high, that maybe nothing is too much, to begin with.
         Maybe for now I should just try, each day, to be a little less than I
         usually am.
+      </p>
+      <p>
+        <span itemprop="name">Here is the author itemprop</span>
       </p>
     </article>
   </main>
