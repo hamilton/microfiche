@@ -2,15 +2,15 @@
   "description": "",
   "author": "Hamilton Ulmer",
   "manifest_version": 2,
-  "name": "UWEF",
+  "name": "untitled web extension framework",
   "version": "0.0.0",
-  "homepage_url": "https://github.com/mozilla-rally/quantified-self-playtest",
+  "homepage_url": "https://github.com/hamilton/untitled-webextension-framework/",
 
   "icons": {},
 
   "applications": {
     "gecko": {
-      "id": "rally-study-02@mozilla.org",
+      "id": "untitled-web-extension-framework@mozilla.org",
       "strict_min_version": "77.0a1"
     }
   },
