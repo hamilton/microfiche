@@ -1,6 +1,6 @@
 {
-  "name": "untitled-webextension-framework",
-  "version": "0.10.0",
+  "name": "microfiche",
+  "version": "0.1.0",
   "scripts": {
     "cleanup": "rimraf dist && rimraf out-tsc",
     "build": "npm run precompile && npm run build:options-page && npm run build:addon",
@@ -92,14 +92,14 @@
   "description": "A web extension that measures where you go and what you do on the web.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hamilton/untitled-webextension-framework.git"
+    "url": "git+https://github.com/hamilton/microfiche.git"
   },
   "keywords": [],
   "author": "Hamilton Ulmer",
   "license": "MPL-2.0",
   "private": true,
   "bugs": {
-    "url": "https://github.com/hamilton/untitled-webextension-framework/issues"
+    "url": "https://github.com/hamilton/microfiche/issues"
   },
-  "homepage": "https://github.com/hamilton/untitled-webextension-framework#readme"
+  "homepage": "https://github.com/hamilton/microfiche#readme"
 }

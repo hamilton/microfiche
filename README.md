@@ -1,8 +1,8 @@
-# Untitled Web Extension Framework
+# Microfiche
 
 __NB: this repository is in extreme alpha state.__
 
-`untitled web extension framework` helps you collect and gives access to data about how you browse.
+`microfiche` helps you collect and gives access to data about how you browse.
 You can select any number of modules that collects aspects of your browsing history or build your own
 using very simple primitives. You can choose to send the data to an endpoint or just store it locally
 to be downloaded later.

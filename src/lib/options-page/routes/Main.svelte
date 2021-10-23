@@ -7,6 +7,7 @@
     import NamespaceGrid from "../components/NamespaceGrid.svelte";
     import NamespaceControls from "../components/NamespaceControls.svelte";
     import CheapDialog from "../components/CheapDialog.svelte";
+    import Logo from "../components/Logo.svelte";
     // export let namespaces;
     export let namespaces;
 
@@ -25,9 +26,9 @@
 </script>
 
 {#if mounted}
-    <div class="admin" in:fade={{ duration: 800 }}>
+    <div class="admin" in:fade={{ duration: 400 }}>
         <header>
-            <h1><span style="display: inline-block; transform: rotate({$spinner * 270 * 1}deg);">📺</span> Untitled Webextension Framework</h1>
+            <h1><Logo /></h1>
         </header>
         <main>
             <div class='content-container'>
@@ -75,13 +76,13 @@
         <footer>
             <ul>
                 <li>
-                    <a href='https://github.com/hamilton/untitled-webextension-framework'>Github</a>
+                    <a href='https://github.com/hamilton/microfiche'>Github</a>
                 </li>
                 <li>
-                    <a href='https://github.com/hamilton/untitled-webextension-framework'>About</a>
+                    <a href='https://github.com/hamilton/microfiche#readme'>About</a>
                 </li>
                 <li>
-                    <a href='https://github.com/hamilton/untitled-webextension-framework'>Reach Out</a>
+                    <a href='https://github.com/hamilton/microfiche/issues'>File an issue</a>
                 </li>
             </ul>
         </footer>

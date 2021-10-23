@@ -8,14 +8,55 @@
   --button-text: white;
   --border-color: var(--button-bg);
 
+  --button-bg-secondary: transparent;
+  --button-bg-secondary-hover: hsl(var(--h), 10%, 90%);
+  --button-bg-secondary-active: hsl(var(--h), 80%, 30%);
+  --button-bg-secondary-disabled: hsl(var(--h), 20%, 95%);
+  --button-text-secondary-disabled: hsl(var(--h), 10%, 55%);
+  --button-secondary-text: var(--button-bg);
+
+  --button-alarm-text: white;
+  
+  --surface-border-color: hsl(217, 5%, 90%);
+
   --app-bg: hsl(var(--h), 90%, 98%);
   --surface-bg: white;
-  --surface-text: #444;
+  --surface-text: #333;
+  --main-bg: hsl(300, 7%, 97%);
 
+  --logo-color: var(--text-color);
   --text-color: hsl(217, 10%, 40%);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --logo-color: white;
+    --surface-border-color: hsl(217, 10%, 10%);
+    --app-bg: hsl(327, 5%, 2%);
+    --main-bg: hsl(327, 5%, 2%);;
+    --surface-bg: hsl(327, 5%, 5%);
+    --text-color: white;
+
+    --button-bg: hsl(var(--h), 78%, 70%);
+    --button-bg-hover: hsl(var(--h), 60%, 50%);
+    --buttton-bg-active: hsl(var(--h), 70%, 50%);
+    --button-bg-disabled: hsl(var(--h), 10%, 10%);
+    --button-text-disabled: hsl(var(--h), 10%, 65%);
+
+    --button-text: black;
+
+    --button-bg-secondary: transparent;
+    --button-bg-secondary-hover: hsl(var(--h), 40%, 30%);
+    --button-bg-secondary-active: hsl(var(--h), 80%, 30%);
+    --button-bg-secondary-disabled: hsl(var(--h), 20%, 95%);
+    --button-text-secondary-disabled: hsl(var(--h), 10%, 55%);
+
+    --button-alarm-text: black;
+  }
+}
+
 body {
+  background-color: var(--app-bg);
   margin: 0;
   padding: 0;
   font-size: 16px;
@@ -55,36 +96,41 @@ button {
   text-transform: uppercase;
 }
 
-.btn:hover,
-button:hover {
+.btn:enabled:hover,
+button:enabled:hover {
   background-color: var(--button-bg-hover);
 }
 
-.btn:active,
-button:active {
+.btn:enabled:active,
+button:enabled:active {
   background-color: var(--button-bg-active);
   transform: translateY(2px);
 }
 
-.btn:disabled,
-button:disabled {
-  border-color: var(--button-bg-disabled);
-  background-color: var(--button-bg-disabled);
-  color: var(--button-text-disabled);
-}
-
 .btn-secondary {
-  --button-bg: transparent;
-  --button-bg-hover: hsl(var(--h), 10%, 90%);
-  --button-bg-active: hsl(var(--h), 80%, 30%);
-  --button-bg-disabled: hsl(var(--h), 20%, 95%);
-  --button-text-disabled: hsl(var(--h), 10%, 55%);
-  --button-text: #555;
+  --button-bg: var(--button-bg-secondary);
+  --button-bg-hover: var(--button-bg-secondary-hover);
+  --button-bg-active: var(--button-bg-secondary-active);
+  --button-bg-disabled: var(--button-bg-secondary-disabled);
+  --button-text-disabled: var(--button-text-secondary-disabled);
+  --button-text: var(--button-secondary-text);
   --border-color: var(--button-text);
 
   background: none;
   border: none;
-  color: #555;
+}
+
+.btn:disabled,
+button:disabled, .btn-secondary:disabled {
+  pointer-events: none;
+  --border-color: var(--button-bg-disabled);
+  --button-bg: var(--button-bg-disabled);
+  --button-text: var(--button-text-disabled);
+}
+
+.btn:disabled:hover,
+button:disabled:hover, .btn-secondary:disabled:hover {
+  --button-bg-hover: transparent;
 }
 
 .btn-text {
@@ -100,18 +146,15 @@ button:disabled {
 
 .btn-alarm {
   --button-bg: hsl(1, 90%, 50%);
-  --button-bg-hover: hsl(1, 10%, 50%);
+  --button-bg-hover: hsl(1, 40%, 50%);
   --button-bg-active: hsl(1, 80%, 30%);
   --button-bg-disabled: hsl(1, 20%, 95%);
   --button-text-disabled: hsl(1, 10%, 55%);
-  --button-text: white;
+  --button-text: var(--button-alarm-text);
   --border-color: var(--button-text);
 }
 
 .admin {
-  /* max-width: 700px; */
-  /* margin-top: 2rem; */
-  background-color: #f8f7f8;
 
   display: grid;
   min-height: 100vh;
@@ -122,12 +165,12 @@ button:disabled {
 }
 
 header {
-  background-color: white;
+  background-color: var(--surface-bg);
   display: grid;
   grid-template-columns: auto max-content;
   align-items: center;
   position: relative;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--surface-border-color);
 }
 
 footer {
@@ -135,7 +178,8 @@ footer {
   display: grid;
   place-content: center;
   margin-top: 2rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--surface-border-color);
+  background-color: var(--surface-bg);
 }
 
 footer ul {
@@ -159,17 +203,20 @@ h1 {
   font-weight: normal;
   padding: 1rem 3rem;
   font-weight: 700;
+  max-width: 120px;
+  color: var(--logo-color);
 }
 
 h2 {
   font-size: 1.25rem;
   margin: 0px;
   margin-bottom: 2rem;
+  color: var(--text-color);
 }
 
 main {
   /* min-height: calc(100vh - 16rem); */
-  background-color: hsl(300, 7%, 97%);
+  background-color: var(--main-bg);
   /* padding: 2rem; */
   padding-top: 4rem;
 }

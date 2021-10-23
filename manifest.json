@@ -2,15 +2,15 @@
   "description": "",
   "author": "Hamilton Ulmer",
   "manifest_version": 2,
-  "name": "untitled web extension framework",
+  "name": "microfiche",
   "version": "0.0.0",
-  "homepage_url": "https://github.com/hamilton/untitled-webextension-framework/",
+  "homepage_url": "https://github.com/hamilton/microfiche/",
 
   "icons": {},
 
   "applications": {
     "gecko": {
-      "id": "untitled-web-extension-framework@mozilla.org",
+      "id": "microfiche@mozilla.org",
       "strict_min_version": "77.0a1"
     }
   },

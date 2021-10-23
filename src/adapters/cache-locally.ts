@@ -8,7 +8,7 @@ let dbVersion = 0;
 
 function initializeBackend() {
     if (!databaseInstantiated) {
-        DB = new Dexie("untitled-webextension-framework");    
+        DB = new Dexie("microfiche");    
         databaseInstantiated = true;
         const inspector = new EventStreamInspector(DB);
         inspector.initialize();
