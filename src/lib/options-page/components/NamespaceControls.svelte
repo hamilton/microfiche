@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    export let title;
-    export let size;
-    export let description;
-    export let namespace;
+    export let title:string;
+    export let size:number;
+    export let description:string;
+    export let namespace:string;
+    
     const dispatch = createEventDispatcher();
 
     const volumeFormatter = new Intl.NumberFormat();

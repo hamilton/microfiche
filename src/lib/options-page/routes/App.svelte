@@ -1,16 +1,22 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import Main from "./Main.svelte";
   import { downloadJSON } from './download';
   import { get, size, reset } from '../state';
-  export let namespaces;
+
+  import type { ModuleConfiguration } from "../../config-interface";
+  import type { LiveModuleInformation } from "../live-module-information"
+
+  export let namespaces:ModuleConfiguration[];
 
   let data = [];
-  let newNamespaces = [];
-  async function update(ns) {
-    let nns = [...ns.map(n=>({...n}))];
-    for (const n of nns) {
-      n.size = await size({ namespace: n.namespace });
+  let newNamespaces:LiveModuleInformation[] = [];
+  async function update(ns:ModuleConfiguration[]) {
+
+    let nns:LiveModuleInformation[] = [];
+    for (const n of ns) {
+      const s = await size({ namespace: n.namespace });
+      nns.push({ ...n, size: s })
     }
     return nns;
   }
