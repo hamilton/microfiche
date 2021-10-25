@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { onMount, createEventDispatcher } from "svelte";
     import { tweened } from 'svelte/motion';
     import { elasticOut as easing } from 'svelte/easing';
@@ -8,11 +8,14 @@
     import NamespaceControls from "../components/NamespaceControls.svelte";
     import CheapDialog from "../components/CheapDialog.svelte";
     import Logo from "../components/Logo.svelte";
-    // export let namespaces;
-    export let namespaces;
+
+    import type { LiveModuleInformation } from "../live-module-information";
+
+    export let namespaces:LiveModuleInformation[];
 
     let spinner = tweened(1, {duration: 700, easing});
     let mounted = false;
+
     onMount(() => {
         mounted = true;
         spinner.set(0);
@@ -20,7 +23,8 @@
 
     const dispatch = createEventDispatcher();
 
-    let confirm = undefined;
+    let showConfirmation = false;
+    let confirm:({ title:string, size: number, namespace:string });
     const volumeFormatter = new Intl.NumberFormat();
 
 </script>
@@ -32,9 +36,9 @@
         </header>
         <main>
             <div class='content-container'>
-            {#if confirm}
+            {#if showConfirmation}
             <div in:fly={{y: 2.5, duration: 100 }}>
-                <CheapDialog on:escape={() => { confirm = undefined; }}>
+                <CheapDialog on:escape={() => { showConfirmation = false; }}>
                     <svelte:fragment slot="title">
                         🗑️ Clear all data for "{confirm.title}"?
                     </svelte:fragment>
@@ -44,11 +48,11 @@
                     </svelte:fragment>
                     <svelte:fragment slot='cta'>
                         <button class="btn-secondary" on:click={() => { 
-                            confirm = undefined;
+                            showConfirmation = false;
                         }}>cancel</button>
                         <button class="btn-alarm" on:click={() => { 
                             dispatch('reset', confirm.namespace);
-                            confirm = undefined; }}>clear data</button>
+                            showConfirmation = false; }}>clear data</button>
                     </svelte:fragment>
                 </CheapDialog>
             </div>
@@ -59,7 +63,10 @@
                         <NamespaceGrid>
                             {#each namespaces as { title, size, namespace, description }}
                                 <NamespaceControls 
-                                    on:clear={() => { confirm = { title, size: size, namespace }; }} 
+                                    on:clear={() => { 
+                                        showConfirmation = true;
+                                        confirm = { title, size: size, namespace }; 
+                                    }} 
                                     on:download 
                                     {title} 
                                     {size}

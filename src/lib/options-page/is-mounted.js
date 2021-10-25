@@ -1,4 +1,6 @@
+// eslint-disable-next-line node/no-extraneous-import
 import { onMount } from "svelte";
+// eslint-disable-next-line node/no-extraneous-import
 import { writable } from "svelte/store";
 
 export default function isMounted() {
